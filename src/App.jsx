@@ -4,6 +4,8 @@ import "./App.css";
 
 function App() {
   const [details, setDetails] = useState("");
+  const [id, setId] = useState("");
+  const [plaintext, setPlaintext] = useState("");
 
   const runSetup = async () => {
     const result = await invoke("setup_command");
@@ -11,14 +13,11 @@ function App() {
   };
 
   const runExtract = async () => {
-    const id = document.getElementById("id").value;
     const result = await invoke("extract_command", { id });
     setDetails(result);
   };
 
   const runEncrypt = async () => {
-    const id = document.getElementById("id").value;
-    const plaintext = document.getElementById("plaintext").value;
     const result = await invoke("encrypt_command", { id, plaintext });
     setDetails(result);
   };
@@ -29,16 +28,35 @@ function App() {
   };
 
   return (
-    <div style={{ display: "flex", padding: "20px" }}>
-      <div style={{ width: "40%", marginRight: "20px" }}>
-        <button onClick={runSetup}>Setup</button><br/><br/>
-        <input id="id" placeholder="Enter ID" /><br/><br/>
-        <input id="plaintext" placeholder="Enter Plaintext" /><br/><br/>
-        <button onClick={runExtract}>Extract</button><br/><br/>
-        <button onClick={runEncrypt}>Encrypt</button><br/><br/>
-        <button onClick={runDecrypt}>Decrypt</button><br/><br/>
+    <div className="container">
+      <div className="left-panel">
+        <h2>KR-IBE Demo</h2>
+
+        <button onClick={runSetup} className="action-button">🔵 Setup</button>
+
+        <input
+          type="text"
+          placeholder="Enter ID for Extract"
+          value={id}
+          onChange={(e) => setId(e.target.value)}
+          className="input-box"
+        />
+        <button onClick={runExtract} className="action-button">🟢 Extract</button>
+
+        <input
+          type="text"
+          placeholder="Enter Plaintext to Encrypt"
+          value={plaintext}
+          onChange={(e) => setPlaintext(e.target.value)}
+          className="input-box"
+        />
+        <button onClick={runEncrypt} className="action-button">🟣 Encrypt</button>
+
+        <button onClick={runDecrypt} className="action-button">🟠 Decrypt</button>
       </div>
-      <div style={{ width: "60%", background: "#f0f0f0", padding: "10px" }}>
+
+      <div className="right-panel">
+        <h3>Details Output:</h3>
         <pre>{details}</pre>
       </div>
     </div>
