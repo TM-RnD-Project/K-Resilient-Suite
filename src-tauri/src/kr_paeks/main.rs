@@ -1,12 +1,12 @@
 #![allow(non_snake_case)]
 
-mod params;
-mod private_key;
-mod public_key;
-mod ciphertext;
-mod trapdoor;
-mod polynomial;
-mod lagrange;
+use super::params::Params;
+use super::private_key::PrivateKey;
+use super::public_key::PublicKey;
+use super::ciphertext::Ciphertext;
+use super::trapdoor::Trapdoor;
+use super::lagrange::Lagrange;
+use super::polynomial;
 
 extern crate mcore;
 
@@ -14,11 +14,6 @@ use mcore::ed25519::big;
 use mcore::ed25519::ecp;
 use mcore::rand::RAND;
 use mcore::ed25519::ecdh;
-use params::Params;
-use private_key::PrivateKey;
-use public_key::PublicKey;
-use ciphertext::Ciphertext;
-use trapdoor::Trapdoor;
 use polynomial::Polynomial;
 use std::time::Instant;
 use rand::RngCore;
@@ -34,7 +29,7 @@ use std::sync::{Arc, Mutex};
 use rayon::prelude::*;
 
 /// Generates a random seed for RNG
-fn gen_seed() -> RAND {
+pub fn gen_seed() -> RAND {
     let mut rng = RAND::new();
     let mut seed = [0u8; 100];
     rand::thread_rng().fill_bytes(&mut seed);
@@ -44,7 +39,7 @@ fn gen_seed() -> RAND {
 }
 
 /// KR-PAEKS Setup: Generates system parameters and the master secret key.
-fn setup(params: &mut Params){
+pub fn setup(params: &mut Params){
 
     let k = 1000; //initiates the value of K
     let mut rng = gen_seed();
@@ -69,7 +64,7 @@ fn setup(params: &mut Params){
 }
 
 /// Key Generation: Generates a public/private key pair.
-fn keygen(params: &Params, pk: &mut PublicKey, sk: &mut PrivateKey) {
+pub fn keygen(params: &Params, pk: &mut PublicKey, sk: &mut PrivateKey) {
     let k = params.get_k();
     let order = params.get_order();
     let g1 = params.get_g1();
@@ -90,7 +85,7 @@ fn keygen(params: &Params, pk: &mut PublicKey, sk: &mut PrivateKey) {
 }
 
 /// Encrypts a keyword under the given public key.
-fn encrypt(params: &Params, pk: &PublicKey, sk: &PrivateKey, keyword: &big::BIG) -> Ciphertext {
+pub fn encrypt(params: &Params, pk: &PublicKey, sk: &PrivateKey, keyword: &big::BIG) -> Ciphertext {
     let order = &params.order;
     let k = params.k;
     let mut rng = gen_seed();
@@ -184,7 +179,7 @@ pub fn encrypt_multi_keyword(
 }
 
 /// Generates a trapdoor for keyword search.
-fn trapdoor(params: &Params, pk: &PublicKey, sk: &PrivateKey, keyword: &big::BIG) -> Trapdoor {
+pub fn trapdoor(params: &Params, pk: &PublicKey, sk: &PrivateKey, keyword: &big::BIG) -> Trapdoor {
     let order = &params.order;
     let k = params.k;
     let mut rng = gen_seed();
@@ -284,7 +279,7 @@ pub fn trapdoor_multi_keyword(
 
 /// Tests if a ciphertext contains the keyword using the trapdoor.
 
-fn test(ciphertext: &Ciphertext, trapdoor: &Trapdoor) -> bool {
+pub fn test(ciphertext: &Ciphertext, trapdoor: &Trapdoor) -> bool {
     // Compute LHS: u * C1 + T2
     let mut lhs = ciphertext.c1.mul(&ciphertext.u);
     lhs.add(&trapdoor.t2);
@@ -299,7 +294,7 @@ fn test(ciphertext: &Ciphertext, trapdoor: &Trapdoor) -> bool {
 
 
 /// Main function: Runs the full KR-PAEKS scheme
-fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+fn main(){
     let keyword_str = "secure";
     let keyword = hash_to_big(keyword_str);
 
@@ -340,21 +335,21 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     println!("\n======== End Receiver ========\n");
 
     // Encrypt
-    // let ciphertext_start = Instant::now();
-    // let ciphertext=encrypt(&params, &receiver_pk, &sender_sk, &keyword);
-    // let ciphertext_time = ciphertext_start.elapsed();
-    // ciphertext.print();
+    let ciphertext_start = Instant::now();
+    let ciphertext=encrypt(&params, &receiver_pk, &sender_sk, &keyword);
+    let ciphertext_time = ciphertext_start.elapsed();
+    ciphertext.print();
 
     // Generate Trapdoor
-    // let trapdoor_start = Instant::now();
-    // let trapdoor1=trapdoor(&params, &sender_pk, &receiver_sk, &keyword);
-    // let trapdoor_time = trapdoor_start.elapsed();
-    // trapdoor1.print();
+    let trapdoor_start = Instant::now();
+    let trapdoor1=trapdoor(&params, &sender_pk, &receiver_sk, &keyword);
+    let trapdoor_time = trapdoor_start.elapsed();
+    trapdoor1.print();
 
     // Test
-    // let test_start = Instant::now();
-    // let test_result = test(&ciphertext, &trapdoor1);
-    // let test_time = test_start.elapsed();
+    let test_start = Instant::now();
+    let test_result = test(&ciphertext, &trapdoor1);
+    let test_time = test_start.elapsed();
 
     // if test_result {
     //     println!("Test Successful!\n");
@@ -365,34 +360,34 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     //     println!("Test Unsuccessful!");
     // }
 
-    let url = "mysql://root:root@192.168.68.110/EnronMailDS";
-    let pool = Pool::new(url)?;
+    // let url = "mysql://root:root@192.168.68.110/EnronMailDS";
+    // let pool = Pool::new(url)?;
 
-    // test_sql_enc(&params, &receiver_pk, &sender_sk, "Forwarded", &pool).unwrap();
+    // // test_sql_enc(&params, &receiver_pk, &sender_sk, "Forwarded", &pool).unwrap();
 
-    // let keyword_test = "Forwarded";
-    // let kw = hash_to_big(keyword_test);
+    // // let keyword_test = "Forwarded";
+    // // let kw = hash_to_big(keyword_test);
+    // // let trapdoor_start = Instant::now();
+    // // let testt = trapdoor(&params, &sender_pk, &receiver_sk, &kw);
+    // // let trapdoor_time = trapdoor_start.elapsed().as_millis();
+    // // println!("\nTime for Generating Trapdoor with k={}: {} ms.\n", params.get_k(), trapdoor_time);
+
+    // let kw1: &[String] = &vec!["forwarded".to_string(), "please".to_string(), "hey".to_string()];
+    // test_sql_enc_multi(&params, &receiver_pk, &sender_sk, kw1, &pool).unwrap();
+
+    // // let kw = hash_to_big_array(kw1);
     // let trapdoor_start = Instant::now();
-    // let testt = trapdoor(&params, &sender_pk, &receiver_sk, &kw);
+    // let testt = trapdoor_multi_keyword(&params, &sender_pk, &receiver_sk, &kw1);
     // let trapdoor_time = trapdoor_start.elapsed().as_millis();
     // println!("\nTime for Generating Trapdoor with k={}: {} ms.\n", params.get_k(), trapdoor_time);
 
-    let kw1: &[String] = &vec!["forwarded".to_string(), "please".to_string(), "hey".to_string()];
-    test_sql_enc_multi(&params, &receiver_pk, &sender_sk, kw1, &pool).unwrap();
+    // test_sql_test(&params, &testt, &pool).unwrap();
 
-    // let kw = hash_to_big_array(kw1);
-    let trapdoor_start = Instant::now();
-    let testt = trapdoor_multi_keyword(&params, &sender_pk, &receiver_sk, &kw1);
-    let trapdoor_time = trapdoor_start.elapsed().as_millis();
-    println!("\nTime for Generating Trapdoor with k={}: {} ms.\n", params.get_k(), trapdoor_time);
-
-    test_sql_test(&params, &testt, &pool).unwrap();
-
-    Ok(())
+    // Ok(())
 }
 
 /// Converts a string to a `BIG` using SHAKE256.
-fn hash_to_big(input: &str) -> big::BIG {
+pub fn hash_to_big(input: &str) -> big::BIG {
     use mcore::sha3::{SHA3, SHAKE256};
 
     let mut hasher = SHA3::new(SHAKE256);
@@ -433,164 +428,164 @@ fn is_valid(p: &ecp::ECP) -> isize {
     0
 }
 
-pub fn test_sql_enc(
-    params: &Params,
-    rpk: &PublicKey,
-    ssk: &PrivateKey,
-    kw: &str,
-    pool: &Pool,  // Pass a pre-initialized connection pool
-) -> std::result::Result<(), Box<dyn Error>> {
-    let mut conn = pool.get_conn()?;
-    let query = "SELECT IdEmail, body, Date, `X-To` FROM JohnArnoldMail";
-    let emails: Vec<(i32, Option<String>, String, String)> = conn.query(query)?;
+// pub fn test_sql_enc(
+//     params: &Params,
+//     rpk: &PublicKey,
+//     ssk: &PrivateKey,
+//     kw: &str,
+//     pool: &Pool,  // Pass a pre-initialized connection pool
+// ) -> std::result::Result<(), Box<dyn Error>> {
+//     let mut conn = pool.get_conn()?;
+//     let query = "SELECT IdEmail, body, Date, `X-To` FROM JohnArnoldMail";
+//     let emails: Vec<(i32, Option<String>, String, String)> = conn.query(query)?;
 
-    let total_enc_time = AtomicU64::new(0);
-    let cnt = AtomicU64::new(0);
-    let keyword = hash_to_big(kw);
+//     let total_enc_time = AtomicU64::new(0);
+//     let cnt = AtomicU64::new(0);
+//     let keyword = hash_to_big(kw);
 
-    // Use par_iter() instead of into_par_iter()
-    let encrypted_results: Vec<(String, String, String, i32)> = emails
-        .par_iter()
-        .filter_map(|(id, body, date, to)| {
-            if let Some(body) = body {
-                if body.contains(kw) {
-                    let start = Instant::now();
-                    let ciphertext = encrypt(params, rpk, ssk, &keyword);
-                    let elapsed = start.elapsed().as_millis() as u64;
+//     // Use par_iter() instead of into_par_iter()
+//     let encrypted_results: Vec<(String, String, String, i32)> = emails
+//         .par_iter()
+//         .filter_map(|(id, body, date, to)| {
+//             if let Some(body) = body {
+//                 if body.contains(kw) {
+//                     let start = Instant::now();
+//                     let ciphertext = encrypt(params, rpk, ssk, &keyword);
+//                     let elapsed = start.elapsed().as_millis() as u64;
 
-                    total_enc_time.fetch_add(elapsed, Ordering::SeqCst);
-                    cnt.fetch_add(1, Ordering::SeqCst);
+//                     total_enc_time.fetch_add(elapsed, Ordering::SeqCst);
+//                     cnt.fetch_add(1, Ordering::SeqCst);
 
-                    let string_cipher = serde_cbor::to_vec(&ciphertext).ok()?; // Use CBOR instead of JSON
-                    let encoded_cipher = base64::encode(&string_cipher);
-                    return Some((encoded_cipher, date.clone(), to.clone(), *id));
-                }
-            }
-            None
-        })
-        .collect();
+//                     let string_cipher = serde_cbor::to_vec(&ciphertext).ok()?; // Use CBOR instead of JSON
+//                     let encoded_cipher = base64::encode(&string_cipher);
+//                     return Some((encoded_cipher, date.clone(), to.clone(), *id));
+//                 }
+//             }
+//             None
+//         })
+//         .collect();
 
-    // Batch update with prepared statements
-    if !encrypted_results.is_empty() {
-        let mut stmt = conn.prep("UPDATE JohnArnoldMail SET ciphertext = ? WHERE `Date` = ? AND `X-To` = ? AND `IdEmail` = ?")?;
-        conn.exec_batch(&stmt, encrypted_results)?;
-    }
+//     // Batch update with prepared statements
+//     if !encrypted_results.is_empty() {
+//         let mut stmt = conn.prep("UPDATE JohnArnoldMail SET ciphertext = ? WHERE `Date` = ? AND `X-To` = ? AND `IdEmail` = ?")?;
+//         conn.exec_batch(&stmt, encrypted_results)?;
+//     }
 
-    let total_time = total_enc_time.load(Ordering::SeqCst);
-    let count = cnt.load(Ordering::SeqCst);
+//     let total_time = total_enc_time.load(Ordering::SeqCst);
+//     let count = cnt.load(Ordering::SeqCst);
 
-    println!("\nTotal Number of Emails Encrypted: {}\n", count);
-    println!("Total Time Encrypting {} Emails: {} ms.\n", count, total_time);
-    if count > 0 {
-        println!("Average Time Encrypting 1 Email: {} ms.\n", total_time / count);
-    }
+//     println!("\nTotal Number of Emails Encrypted: {}\n", count);
+//     println!("Total Time Encrypting {} Emails: {} ms.\n", count, total_time);
+//     if count > 0 {
+//         println!("Average Time Encrypting 1 Email: {} ms.\n", total_time / count);
+//     }
 
-    Ok(())
-}
+//     Ok(())
+// }
 
-pub fn test_sql_enc_multi(
-    params: &Params,
-    rpk: &PublicKey,
-    ssk: &PrivateKey,
-    kw: &[String],
-    pool: &Pool,  // Pass a pre-initialized connection pool
-) -> std::result::Result<(), Box<dyn Error>> {
-    let mut conn = pool.get_conn()?;
-    let query = "SELECT IdEmail, body, Date, `X-To` FROM JohnArnoldMail";
-    let emails: Vec<(i32, Option<String>, String, String)> = conn.query(query)?;
+// pub fn test_sql_enc_multi(
+//     params: &Params,
+//     rpk: &PublicKey,
+//     ssk: &PrivateKey,
+//     kw: &[String],
+//     pool: &Pool,  // Pass a pre-initialized connection pool
+// ) -> std::result::Result<(), Box<dyn Error>> {
+//     let mut conn = pool.get_conn()?;
+//     let query = "SELECT IdEmail, body, Date, `X-To` FROM JohnArnoldMail";
+//     let emails: Vec<(i32, Option<String>, String, String)> = conn.query(query)?;
 
-    let total_enc_time = AtomicU64::new(0);
-    let cnt = AtomicU64::new(0);
-    let keyword = hash_to_big_array(kw);
+//     let total_enc_time = AtomicU64::new(0);
+//     let cnt = AtomicU64::new(0);
+//     let keyword = hash_to_big_array(kw);
 
-    // Use par_iter() instead of into_par_iter()
-    let encrypted_results: Vec<(String, String, String, i32)> = emails
-    .par_iter()
-    .filter_map(|(id, body, date, to)| {
-        if let Some(body) = body {
-            let mut ccontains_all_keywords = true;
-            let body_lower = body.to_lowercase();
+//     // Use par_iter() instead of into_par_iter()
+//     let encrypted_results: Vec<(String, String, String, i32)> = emails
+//     .par_iter()
+//     .filter_map(|(id, body, date, to)| {
+//         if let Some(body) = body {
+//             let mut ccontains_all_keywords = true;
+//             let body_lower = body.to_lowercase();
 
-            // Check if body contains all keywords
-            for keyword in kw {
-                if !body_lower.contains(&keyword.to_lowercase()) {
-                    ccontains_all_keywords = false;
-                    break;
-                }
-            }
+//             // Check if body contains all keywords
+//             for keyword in kw {
+//                 if !body_lower.contains(&keyword.to_lowercase()) {
+//                     ccontains_all_keywords = false;
+//                     break;
+//                 }
+//             }
 
-            if ccontains_all_keywords {
-                let start = Instant::now();
-                let ciphertext = encrypt_multi_keyword(params, rpk, ssk, &kw);  // Assuming kw is the list of keywords
-                let elapsed = start.elapsed().as_millis() as u64;
+//             if ccontains_all_keywords {
+//                 let start = Instant::now();
+//                 let ciphertext = encrypt_multi_keyword(params, rpk, ssk, &kw);  // Assuming kw is the list of keywords
+//                 let elapsed = start.elapsed().as_millis() as u64;
 
-                // Accumulate encryption time and count
-                total_enc_time.fetch_add(elapsed, Ordering::SeqCst);
-                cnt.fetch_add(1, Ordering::SeqCst);
+//                 // Accumulate encryption time and count
+//                 total_enc_time.fetch_add(elapsed, Ordering::SeqCst);
+//                 cnt.fetch_add(1, Ordering::SeqCst);
 
-                // Serialize ciphertext using CBOR and encode it in base64
-                let string_cipher = serde_cbor::to_vec(&ciphertext).ok()?;
-                let encoded_cipher = base64::encode(&string_cipher);
+//                 // Serialize ciphertext using CBOR and encode it in base64
+//                 let string_cipher = serde_cbor::to_vec(&ciphertext).ok()?;
+//                 let encoded_cipher = base64::encode(&string_cipher);
                 
-                // Return the result as a tuple
-                return Some((encoded_cipher, date.clone(), to.clone(), *id));
-            }
-        }
-        None
-    })
-    .collect();
+//                 // Return the result as a tuple
+//                 return Some((encoded_cipher, date.clone(), to.clone(), *id));
+//             }
+//         }
+//         None
+//     })
+//     .collect();
 
-    // Batch update with prepared statements
-    if !encrypted_results.is_empty() {
-        let mut stmt = conn.prep("UPDATE JohnArnoldMail SET ciphertext = ? WHERE `Date` = ? AND `X-To` = ? AND `IdEmail` = ?")?;
-        conn.exec_batch(&stmt, encrypted_results)?;
-    }
+//     // Batch update with prepared statements
+//     if !encrypted_results.is_empty() {
+//         let mut stmt = conn.prep("UPDATE JohnArnoldMail SET ciphertext = ? WHERE `Date` = ? AND `X-To` = ? AND `IdEmail` = ?")?;
+//         conn.exec_batch(&stmt, encrypted_results)?;
+//     }
 
-    let total_time = total_enc_time.load(Ordering::SeqCst);
-    let count = cnt.load(Ordering::SeqCst);
+//     let total_time = total_enc_time.load(Ordering::SeqCst);
+//     let count = cnt.load(Ordering::SeqCst);
 
-    println!("\nTotal Number of Emails Encrypted: {}\n", count);
-    println!("Total Time Encrypting {} Emails: {} ms.\n", count, total_time);
-    if count > 0 {
-        println!("Average Time Encrypting 1 Email: {} ms.\n", total_time / count);
-    }
+//     println!("\nTotal Number of Emails Encrypted: {}\n", count);
+//     println!("Total Time Encrypting {} Emails: {} ms.\n", count, total_time);
+//     if count > 0 {
+//         println!("Average Time Encrypting 1 Email: {} ms.\n", total_time / count);
+//     }
 
-    Ok(())
-}
+//     Ok(())
+// }
 
-pub fn test_sql_test(params: &Params, t: &Trapdoor, pool: &Pool) -> std::result::Result<(), Box<dyn Error>> {
-    let mut conn = pool.get_conn()?;
-    let query = "SELECT ciphertext, Date, `X-To` FROM JohnArnoldMail WHERE ciphertext IS NOT NULL";
-    let emails: Vec<(Option<String>, String, String)> = conn.query(query)?;
+// pub fn test_sql_test(params: &Params, t: &Trapdoor, pool: &Pool) -> std::result::Result<(), Box<dyn Error>> {
+//     let mut conn = pool.get_conn()?;
+//     let query = "SELECT ciphertext, Date, `X-To` FROM JohnArnoldMail WHERE ciphertext IS NOT NULL";
+//     let emails: Vec<(Option<String>, String, String)> = conn.query(query)?;
 
-    let total_test_time = AtomicU64::new(0);
-    let cnt = AtomicU64::new(0);
-    // let keyword = hash_to_big(kw);
+//     let total_test_time = AtomicU64::new(0);
+//     let cnt = AtomicU64::new(0);
+//     // let keyword = hash_to_big(kw);
 
-    let matched_results: Vec<(String, String)> = emails
-        .par_iter()
-        .filter_map(|(ciphertext_opt, date, to)| {
-            if let Some(ciphertext_base64) = ciphertext_opt {
-                // Decode base64 & CBOR
-                let decoded_ciphertext = base64::decode(ciphertext_base64).ok()?;
-                let ciphertext: Ciphertext = serde_cbor::from_slice(&decoded_ciphertext).ok()?;
+//     let matched_results: Vec<(String, String)> = emails
+//         .par_iter()
+//         .filter_map(|(ciphertext_opt, date, to)| {
+//             if let Some(ciphertext_base64) = ciphertext_opt {
+//                 // Decode base64 & CBOR
+//                 let decoded_ciphertext = base64::decode(ciphertext_base64).ok()?;
+//                 let ciphertext: Ciphertext = serde_cbor::from_slice(&decoded_ciphertext).ok()?;
 
-                let start = Instant::now();
-                let result =  test(&ciphertext, t);
-                let elapsed = start.elapsed().as_millis() as u64;
-                total_test_time.fetch_add(elapsed, Ordering::SeqCst);
-                cnt.fetch_add(1, Ordering::SeqCst);
+//                 let start = Instant::now();
+//                 let result =  test(&ciphertext, t);
+//                 let elapsed = start.elapsed().as_millis() as u64;
+//                 total_test_time.fetch_add(elapsed, Ordering::SeqCst);
+//                 cnt.fetch_add(1, Ordering::SeqCst);
 
-                if result {
-                    return Some((date.clone(), to.clone()));
-                }
-            }
-            None
-        })
-        .collect();
+//                 if result {
+//                     return Some((date.clone(), to.clone()));
+//                 }
+//             }
+//             None
+//         })
+//         .collect();
 
-    println!("\nTotal Number of Emails Matched: {}\n", cnt.load(Ordering::SeqCst));
-    println!("Total Time Testing {} Emails: {} ms.\n", cnt.load(Ordering::SeqCst), total_test_time.load(Ordering::SeqCst));
+//     println!("\nTotal Number of Emails Matched: {}\n", cnt.load(Ordering::SeqCst));
+//     println!("Total Time Testing {} Emails: {} ms.\n", cnt.load(Ordering::SeqCst), total_test_time.load(Ordering::SeqCst));
 
-    Ok(())
-}
+//     Ok(())
+// }

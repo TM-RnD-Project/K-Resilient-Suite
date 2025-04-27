@@ -1,4 +1,4 @@
-use crate::utils::ecp_to_hex;
+use super::utils::ecp_to_hex;
 use mcore::ed25519::ecp;
 
 pub struct Ciphertext {

@@ -1,4 +1,4 @@
-use crate::polynomial::Polynomial;
+use super::polynomial::Polynomial;
 
 pub struct PrivateKey {
     p1: Polynomial,

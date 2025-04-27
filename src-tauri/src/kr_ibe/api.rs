@@ -13,7 +13,7 @@ static CT: Lazy<Mutex<Option<Ciphertext>>> = Lazy::new(|| Mutex::new(None));
 static PT: Lazy<Mutex<Option<Plaintext>>> = Lazy::new(|| Mutex::new(None));
 
 #[tauri::command]
-pub fn setup_command() -> String {
+pub fn kr_ibe_setup() -> String {
     println!("Reached setup_command");
     let mut params = Params::new();
     kribe_core::setup(&mut params);
@@ -22,7 +22,7 @@ pub fn setup_command() -> String {
 }
 
 #[tauri::command]
-pub fn extract_command(id: String) -> String {
+pub fn kr_ibe_extract(id: String) -> String {
     let id_bytes = id.into_bytes();
 
     let maybe_params = PARAMS.lock().unwrap();
@@ -41,7 +41,7 @@ pub fn extract_command(id: String) -> String {
 }
 
 #[tauri::command]
-pub fn encrypt_command(id: String, plaintext: String) -> String {
+pub fn kr_ibe_encrypt(id: String, plaintext: String) -> String {
     let id_bytes = id.into_bytes();
     let msg_bytes = plaintext.into_bytes();
 
@@ -60,7 +60,7 @@ pub fn encrypt_command(id: String, plaintext: String) -> String {
 }
 
 #[tauri::command]
-pub fn decrypt_command() -> String {
+pub fn kr_ibe_decrypt() -> String {
     // Step 1: Lock and extract params, sk, and ct one-by-one
 
     let mut pt = Plaintext::new();

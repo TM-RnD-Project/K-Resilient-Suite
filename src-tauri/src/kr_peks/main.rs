@@ -1,20 +1,13 @@
 #![allow(non_snake_case)]
 
-mod params;
-mod public_key;
-mod private_key;
-mod ciphertext;
-mod trapdoor;
-mod polynomial;
-mod utils;
+use super::params::Params;
+use super::public_key::PublicKey;
+use super::private_key::PrivateKey;
+use super::ciphertext::Ciphertext;
+use super::trapdoor::Trapdoor;
+use super::polynomial::Polynomial;
+use super::utils::*;
 
-use crate::params::Params;
-use crate::public_key::PublicKey;
-use crate::private_key::PrivateKey;
-use crate::ciphertext::Ciphertext;
-use crate::trapdoor::Trapdoor;
-use crate::polynomial::Polynomial;
-use utils::*;
 use mcore::ed25519::big;
 use mcore::ed25519::ecp;
 use mcore::ed25519::rom;
@@ -25,7 +18,7 @@ use mysql::prelude::*;
 use base64::*;
 use serde_json::{json, Value};
 
-fn setup(params: &mut Params) {
+pub fn setup(params: &mut Params) {
     let k = 20;
     let order = big::BIG::new_ints(&rom::CURVE_ORDER);
 
@@ -38,7 +31,7 @@ fn setup(params: &mut Params) {
     params.set_params(k, order, g1, g2);
 }
 
-fn keygen(params: &Params, pk: &mut PublicKey, sk: &mut PrivateKey) {
+pub fn keygen(params: &Params, pk: &mut PublicKey, sk: &mut PrivateKey) {
     let k = params.get_k()+1;
     let order = params.get_order();
     let g1 = params.get_g1();
@@ -58,7 +51,7 @@ fn keygen(params: &Params, pk: &mut PublicKey, sk: &mut PrivateKey) {
     pk.set_public_key(Dt);
 }
 
-fn peks(params: &Params, pk: &PublicKey, w: &Vec<u8>) -> Option<Ciphertext> {
+pub fn peks(params: &Params, pk: &PublicKey, w: &Vec<u8>) -> Option<Ciphertext> {
     if pk.is_valid() != 0 {
         println!("Public Key is invalid!");
         return None;
@@ -88,7 +81,7 @@ fn peks(params: &Params, pk: &PublicKey, w: &Vec<u8>) -> Option<Ciphertext> {
     Some(Ciphertext::new_ciphertext(&u1, &u2, &sw))
 }
 
-fn trapdoor(params: &Params, sk: &PrivateKey, w: &Vec<u8>) -> Trapdoor{
+pub fn trapdoor(params: &Params, sk: &PrivateKey, w: &Vec<u8>) -> Trapdoor{
     let order = params.get_order();
     let hashw = hash_to_big(w, order);
 
@@ -98,7 +91,7 @@ fn trapdoor(params: &Params, sk: &PrivateKey, w: &Vec<u8>) -> Trapdoor{
     Trapdoor::new_trapdoor(&p1, &p2)
 }
 
-fn test(c: &Ciphertext, t: &Trapdoor) -> bool {
+pub fn test(c: &Ciphertext, t: &Trapdoor) -> bool {
     let mut right = c.get_u1().mul(&t.get_p1());
     right.add(&c.get_u2().mul(&t.get_p2()));
 

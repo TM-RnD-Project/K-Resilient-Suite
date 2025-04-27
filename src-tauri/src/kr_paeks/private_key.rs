@@ -3,8 +3,8 @@ extern crate mcore;
 use mcore::ed25519::big;
 use mcore::ed25519::ecp;
 
-use crate::polynomial;
-use crate::polynomial::Polynomial;
+use super::polynomial;
+use super::polynomial::Polynomial;
 use std::fmt;
 
 pub struct PrivateKey {

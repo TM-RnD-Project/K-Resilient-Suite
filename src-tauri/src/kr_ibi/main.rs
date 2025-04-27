@@ -1,8 +1,6 @@
 #![allow(non_snake_case)]
 
-mod params;
-
-use crate::params::Params;
+use super::params::Params;
 use std::time::Instant;
 
 extern crate mcore;
@@ -18,7 +16,7 @@ use rand::RngCore;
 use mcore::ed25519::big::BIG;
 use mcore::ed25519::ecp::ECP;
 
-fn setup(params: &mut Params) {
+pub fn setup(params: &mut Params) {
     let start = Instant::now();
     let k = 20;
     let order = big::BIG::new_ints(&rom::CURVE_ORDER);
@@ -48,7 +46,7 @@ fn setup(params: &mut Params) {
     println!("Setup time: {:?}", start.elapsed());
 }
 
-fn extract(params: &Params, id: &[u8]) -> (big::BIG, big::BIG) {
+pub fn extract(params: &Params, id: &[u8]) -> (big::BIG, big::BIG) {
     let start = Instant::now();
     let k = params.get_k() + 1;
     let order = params.get_order();
@@ -78,7 +76,7 @@ fn extract(params: &Params, id: &[u8]) -> (big::BIG, big::BIG) {
 }
 
 // Prover Commitment
-fn commit(params: &Params, rng: &mut RAND) -> ((ecp::ECP, ecp::ECP), (big::BIG, big::BIG)) {
+pub fn commit(params: &Params, rng: &mut RAND) -> ((ecp::ECP, ecp::ECP), (big::BIG, big::BIG)) {
     let r1 = big::BIG::randomnum(params.get_order(), rng);
     let r2 = big::BIG::randomnum(params.get_order(), rng);
 
@@ -89,7 +87,7 @@ fn commit(params: &Params, rng: &mut RAND) -> ((ecp::ECP, ecp::ECP), (big::BIG, 
 }
 
 // Verifier's Challenge
-fn challenge(params: &Params, rng: &mut RAND) -> (big::BIG, big::BIG) {
+pub fn challenge(params: &Params, rng: &mut RAND) -> (big::BIG, big::BIG) {
     let c1 = big::BIG::randomnum(params.get_order(), rng);
     let c2 = big::BIG::randomnum(params.get_order(), rng);
 
@@ -97,7 +95,7 @@ fn challenge(params: &Params, rng: &mut RAND) -> (big::BIG, big::BIG) {
 }
 
 // Prover's Response
-fn respond(
+pub fn respond(
     r: &(big::BIG, big::BIG),
     challenge: &(big::BIG, big::BIG),
     f_id: &(big::BIG, big::BIG),
@@ -112,7 +110,7 @@ fn respond(
     (response_1, response_2)
 }
 
-fn verify(
+pub fn verify(
     params: &Params,
     g_r: &(ecp::ECP, ecp::ECP),
     response: &(big::BIG, big::BIG),
@@ -211,7 +209,7 @@ fn main() {
     println!("Verification result: {}", is_valid);
 }
 
-fn gen_seed() -> RAND {
+pub fn gen_seed() -> RAND {
     let mut raw: [u8; 100] = [0; 100];
     let mut rng = RAND::new();
     rng.clean();
@@ -220,7 +218,7 @@ fn gen_seed() -> RAND {
     rng
 }
 
-fn hash_to_big(data: &[u8]) -> BIG {
+pub fn hash_to_big(data: &[u8]) -> BIG {
     let mut sha = SHA3::new(SHAKE256);
     for &byte in data {
         sha.process(byte);
@@ -230,13 +228,13 @@ fn hash_to_big(data: &[u8]) -> BIG {
     BIG::frombytes(&output)
 }
 
-fn big_to_hex(b: &big::BIG) -> String {
+pub fn big_to_hex(b: &big::BIG) -> String {
     let mut bytes = [0u8; big::MODBYTES];
     b.tobytes(&mut bytes);
     bytes.iter().map(|byte| format!("{:02x}", byte)).collect()
 }
 
-fn ecp_to_hex(p: &ecp::ECP) -> String {
+pub fn ecp_to_hex(p: &ecp::ECP) -> String {
     if p.is_infinity() {
         return String::from("infinity");
     }
@@ -244,6 +242,6 @@ fn ecp_to_hex(p: &ecp::ECP) -> String {
     let wy = p.gety();
     format!("({}, {})", big_to_hex(&wx), big_to_hex(&wy))
 }
-fn string_to_bytes(input: &str) -> Vec<u8> {
+pub fn string_to_bytes(input: &str) -> Vec<u8> {
     input.as_bytes().to_vec()
 }

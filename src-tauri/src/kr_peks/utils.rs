@@ -9,11 +9,11 @@ use std::io::{self, BufReader, BufWriter};
 use base64::*;
 use serde_json::{json, Value};
 
-use crate::Params;
-use crate::public_key::PublicKey;
-use crate::private_key::PrivateKey;
-use crate::polynomial::Polynomial;
-use crate::ciphertext::Ciphertext;
+use super::params::Params;
+use super::public_key::PublicKey;
+use super::private_key::PrivateKey;
+use super::polynomial::Polynomial;
+use super::ciphertext::Ciphertext;
 
 pub fn gen_seed() -> RAND {
     let mut raw: [u8; 100] = [0; 100];

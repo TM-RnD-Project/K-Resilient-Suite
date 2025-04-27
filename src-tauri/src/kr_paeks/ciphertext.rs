@@ -3,11 +3,10 @@ extern crate mcore;
 use mcore::ed25519::big;
 use mcore::ed25519::ecp;
 use mysql::serde;
-use std::fmt;
 use serde::Serialize;
 use serde::Deserialize;
 
-#[derive(Serialize, Deserialize)]
+// #[derive(Serialize, Deserialize)]
 pub struct Ciphertext {
     pub c1: ecp::ECP,
     pub c2: ecp::ECP,

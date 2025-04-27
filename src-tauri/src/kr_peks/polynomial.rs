@@ -1,4 +1,4 @@
-use crate::utils::{gen_seed, big_to_hex};
+use super::utils::*;
 use mcore::ed25519::big;
 
 pub struct Polynomial {
