@@ -7,86 +7,156 @@ use crate::kr_paeks::ciphertext::Ciphertext;
 use crate::kr_paeks::trapdoor::Trapdoor;
 use super::main as krpaeks_core;
 
-static mut PARAMS: Option<Params> = None;
-static mut SENDER_SK: Option<PrivateKey> = None;
-static mut SENDER_PK: Option<PublicKey> = None;
-static mut RECEIVER_SK: Option<PrivateKey> = None;
-static mut RECEIVER_PK: Option<PublicKey> = None;
-static mut CIPHERTEXT: Option<Ciphertext> = None;
-static mut TRAPDOOR: Option<Trapdoor> = None;
+use std::sync::Mutex;
+use once_cell::sync::Lazy;
+use std::time::Instant;
+
+static PARAMS: Lazy<Mutex<Option<Params>>> = Lazy::new(|| Mutex::new(None));
+static SENDER_SK: Lazy<Mutex<Option<PrivateKey>>> = Lazy::new(|| Mutex::new(None));
+static SENDER_PK: Lazy<Mutex<Option<PublicKey>>> = Lazy::new(|| Mutex::new(None));
+static RECEIVER_SK: Lazy<Mutex<Option<PrivateKey>>> = Lazy::new(|| Mutex::new(None));
+static RECEIVER_PK: Lazy<Mutex<Option<PublicKey>>> = Lazy::new(|| Mutex::new(None));
+static CIPHERTEXT: Lazy<Mutex<Option<Ciphertext>>> = Lazy::new(|| Mutex::new(None));
+static TRAPDOOR: Lazy<Mutex<Option<Trapdoor>>> = Lazy::new(|| Mutex::new(None));
+static TOTAL_RUNTIME: Lazy<Mutex<f64>> = Lazy::new(|| Mutex::new(0.0)); // total computation time
 
 #[command]
-pub fn kr_paeks_setup() -> String {
+pub fn kr_paeks_setup(k: usize) -> String {
+    let start_time = Instant::now();
+
     let mut params = Params::new();
-    krpaeks_core::setup(&mut params);
-    unsafe {
-        PARAMS = Some(params);
-    }
-    "✅ KR-PAEKS Setup complete!".into()
+    krpaeks_core::setup(&mut params, k);
+
+    let duration = start_time.elapsed();
+    *PARAMS.lock().unwrap() = Some(params);
+    *TOTAL_RUNTIME.lock().unwrap() = 0.0; // Reset runtime
+    *TOTAL_RUNTIME.lock().unwrap() += duration.as_secs_f64(); // accumulate setup
+
+    let mut output = String::new();
+    output.push_str("✅ KR-PAEKS Setup Complete!\n\n");
+    output.push_str(&PARAMS.lock().unwrap().as_ref().unwrap().format_full());
+    output.push_str(&format!("\n🔵 Setup Time: {:.2?}\n", duration));
+
+    output
 }
 
 #[command]
 pub fn kr_paeks_keygen() -> String {
-    unsafe {
-        if let Some(ref params) = PARAMS {
-            let mut sender_pk = PublicKey::new();
-            let mut sender_sk = PrivateKey::new();
-            let mut receiver_pk = PublicKey::new();
-            let mut receiver_sk = PrivateKey::new();
-            krpaeks_core::keygen(params, &mut sender_pk, &mut sender_sk);
-            krpaeks_core::keygen(params, &mut receiver_pk, &mut receiver_sk);
+    let start_time = Instant::now();
 
-            SENDER_PK = Some(sender_pk);
-            SENDER_SK = Some(sender_sk);
-            RECEIVER_PK = Some(receiver_pk);
-            RECEIVER_SK = Some(receiver_sk);
+    let params_lock = PARAMS.lock().unwrap();
+    if let Some(ref params) = *params_lock {
+        let mut sender_pk = PublicKey::new();
+        let mut sender_sk = PrivateKey::new();
+        let mut receiver_pk = PublicKey::new();
+        let mut receiver_sk = PrivateKey::new();
 
-            "✅ KR-PAEKS Keygen complete!".into()
-        } else {
-            "❌ Error: KR-PAEKS setup not done yet!".into()
-        }
+        krpaeks_core::keygen(params, &mut sender_pk, &mut sender_sk);
+        krpaeks_core::keygen(params, &mut receiver_pk, &mut receiver_sk);
+
+        *SENDER_PK.lock().unwrap() = Some(sender_pk);
+        *SENDER_SK.lock().unwrap() = Some(sender_sk);
+        *RECEIVER_PK.lock().unwrap() = Some(receiver_pk);
+        *RECEIVER_SK.lock().unwrap() = Some(receiver_sk);
+
+        let duration = start_time.elapsed();
+        *TOTAL_RUNTIME.lock().unwrap() += duration.as_secs_f64(); // accumulate keygen
+
+        let mut output = String::new();
+        output.push_str("✅ KR-PAEKS Keygen Complete!\n\n");
+        output.push_str(&format!("\nKeygen Time: {:.2?}\n", duration));
+
+        output
+    } else {
+        "❌ Error: KR-PAEKS setup not done yet!".into()
     }
 }
 
 #[command]
 pub fn kr_paeks_encrypt(keyword: String) -> String {
-    unsafe {
-        if let (Some(ref params), Some(ref receiver_pk), Some(ref sender_sk)) = (PARAMS.as_ref(), RECEIVER_PK.as_ref(), SENDER_SK.as_ref()) {
-            let keyword_big = krpaeks_core::hash_to_big(&keyword);
-            let ct = krpaeks_core::encrypt(params, receiver_pk, sender_sk, &keyword_big);
-            CIPHERTEXT = Some(ct);
-            "✅ KR-PAEKS Encryption complete!".into()
-        } else {
-            "❌ Error: Keygen not done yet!".into()
-        }
+    let start_time = Instant::now();
+
+    let params_lock = PARAMS.lock().unwrap();
+    let receiver_pk_lock = RECEIVER_PK.lock().unwrap();
+    let sender_sk_lock = SENDER_SK.lock().unwrap();
+
+    if let (Some(ref params), Some(ref receiver_pk), Some(ref sender_sk)) = (
+        params_lock.as_ref(), receiver_pk_lock.as_ref(), sender_sk_lock.as_ref()
+    ) {
+        let keyword_big = krpaeks_core::hash_to_big(&keyword);
+        let ct = krpaeks_core::encrypt(params, receiver_pk, sender_sk, &keyword_big);
+
+        *CIPHERTEXT.lock().unwrap() = Some(ct);
+
+        let duration = start_time.elapsed();
+        *TOTAL_RUNTIME.lock().unwrap() += duration.as_secs_f64(); // accumulate encryption
+
+        let mut output = String::new();
+        output.push_str("✅ KR-PAEKS Encryption Complete!\n\n");
+        output.push_str(&format!("\n🟣 Encryption Time: {:.2?}\n", duration));
+
+        output
+    } else {
+        "❌ Error: Keygen not done yet!".into()
     }
 }
 
 #[command]
 pub fn kr_paeks_trapdoor(keyword: String) -> String {
-    unsafe {
-        if let (Some(ref params), Some(ref sender_pk), Some(ref receiver_sk)) = (PARAMS.as_ref(), SENDER_PK.as_ref(), RECEIVER_SK.as_ref()) {
-            let keyword_big = krpaeks_core::hash_to_big(&keyword);
-            let td = krpaeks_core::trapdoor(params, sender_pk, receiver_sk, &keyword_big);
-            TRAPDOOR = Some(td);
-            "✅ KR-PAEKS Trapdoor generation complete!".into()
-        } else {
-            "❌ Error: Keygen not done yet!".into()
-        }
+    let start_time = Instant::now();
+
+    let params_lock = PARAMS.lock().unwrap();
+    let sender_pk_lock = SENDER_PK.lock().unwrap();
+    let receiver_sk_lock = RECEIVER_SK.lock().unwrap();
+
+    if let (Some(ref params), Some(ref sender_pk), Some(ref receiver_sk)) = (
+        params_lock.as_ref(), sender_pk_lock.as_ref(), receiver_sk_lock.as_ref()
+    ) {
+        let keyword_big = krpaeks_core::hash_to_big(&keyword);
+        let td = krpaeks_core::trapdoor(params, sender_pk, receiver_sk, &keyword_big);
+
+        *TRAPDOOR.lock().unwrap() = Some(td);
+
+        let duration = start_time.elapsed();
+        *TOTAL_RUNTIME.lock().unwrap() += duration.as_secs_f64(); // accumulate trapdoor
+
+        let mut output = String::new();
+        output.push_str("✅ KR-PAEKS Trapdoor Generation Complete!\n\n");
+        output.push_str(&format!("\n🟠 Trapdoor Time: {:.2?}\n", duration));
+
+        output
+    } else {
+        "❌ Error: Keygen not done yet!".into()
     }
 }
 
 #[command]
 pub fn kr_paeks_test() -> String {
-    unsafe {
-        if let (Some(ref ct), Some(ref td)) = (CIPHERTEXT.as_ref(), TRAPDOOR.as_ref()) {
-            if krpaeks_core::test(ct, td) {
-                "✅ KR-PAEKS Test successful!".into()
-            } else {
-                "❌ KR-PAEKS Test failed!".into()
-            }
+    let start_time = Instant::now();
+
+    let ct_lock = CIPHERTEXT.lock().unwrap();
+    let td_lock = TRAPDOOR.lock().unwrap();
+
+    if let (Some(ref ct), Some(ref td)) = (ct_lock.as_ref(), td_lock.as_ref()) {
+        let result = krpaeks_core::test(ct, td);
+
+        let duration = start_time.elapsed();
+        *TOTAL_RUNTIME.lock().unwrap() += duration.as_secs_f64(); // accumulate test
+
+        let total_runtime = *TOTAL_RUNTIME.lock().unwrap();
+
+        let mut output = String::new();
+        if result {
+            output.push_str("✅ KR-PAEKS Test Successful!\n\n");
         } else {
-            "❌ Error: Need to run encryption and trapdoor first!".into()
+            output.push_str("❌ KR-PAEKS Test Failed!\n\n");
         }
+
+        output.push_str(&format!("⚡ Test Time: {:.2?}\n", duration));
+        output.push_str(&format!("🏁 Total Computation Time: {:.2} seconds\n", total_runtime));
+
+        output
+    } else {
+        "❌ Error: Need to run encryption and trapdoor first!".into()
     }
 }

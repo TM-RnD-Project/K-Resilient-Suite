@@ -28,7 +28,7 @@ fn main() {
  
              // KR-PEKS
              kr_peks_setup,
-             kr_peks_extract,
+             kr_peks_keygen,
              kr_peks_encrypt,
              kr_peks_trapdoor,
              kr_peks_test,

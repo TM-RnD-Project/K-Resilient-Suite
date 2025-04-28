@@ -57,4 +57,8 @@ impl Ciphertext {
         }
         true
     }
+
+    pub fn format_full(&self) -> String {
+        format!("u1: {}\nu2: {}\nsw: {}", ecp_to_hex(&self.u1), ecp_to_hex(&self.u2), ecp_to_hex(&self.sw))
+    }
 }

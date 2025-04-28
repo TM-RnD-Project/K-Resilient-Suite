@@ -1,5 +1,4 @@
 use tauri::command;
-
 use crate::kr_peks::params::Params;
 use crate::kr_peks::private_key::PrivateKey;
 use crate::kr_peks::public_key::PublicKey;
@@ -8,85 +7,155 @@ use crate::kr_peks::trapdoor::Trapdoor;
 use crate::kr_peks::utils::*;
 use super::main as krpeks_core;
 
-static mut PARAMS: Option<Params> = None;
-static mut SK: Option<PrivateKey> = None;
-static mut PK: Option<PublicKey> = None;
-static mut CIPHERTEXT: Option<Ciphertext> = None;
-static mut TRAPDOOR: Option<Trapdoor> = None;
+use std::sync::Mutex;
+use once_cell::sync::Lazy;
+use std::time::Instant;
+
+static PARAMS: Lazy<Mutex<Option<Params>>> = Lazy::new(|| Mutex::new(None));
+static PK: Lazy<Mutex<Option<PublicKey>>> = Lazy::new(|| Mutex::new(None));
+static SK: Lazy<Mutex<Option<PrivateKey>>> = Lazy::new(|| Mutex::new(None));
+static CIPHERTEXT: Lazy<Mutex<Option<Ciphertext>>> = Lazy::new(|| Mutex::new(None));
+static TRAPDOOR: Lazy<Mutex<Option<Trapdoor>>> = Lazy::new(|| Mutex::new(None));
+static TOTAL_RUNTIME: Lazy<Mutex<f64>> = Lazy::new(|| Mutex::new(0.0)); // Total computation time
 
 #[command]
-pub fn kr_peks_setup() -> String {
+pub fn kr_peks_setup(k: usize) -> String {
+    let start_time = Instant::now();
+
     let mut params = Params::new();
-    krpeks_core::setup(&mut params);
-    unsafe {
-        PARAMS = Some(params);
-    }
-    "✅ KR-PEKS Setup complete!".into()
+    krpeks_core::setup(&mut params, k);
+
+    let duration = start_time.elapsed();
+    *PARAMS.lock().unwrap() = Some(params);
+    *TOTAL_RUNTIME.lock().unwrap() = 0.0; // Reset runtime
+    *TOTAL_RUNTIME.lock().unwrap() += duration.as_secs_f64(); // accumulate
+
+    let mut output = String::new();
+    output.push_str("✅ KR-PEKS Setup Complete!\n\n");
+    output.push_str(&PARAMS.lock().unwrap().as_ref().unwrap().format_full());
+    output.push_str(&format!("\n🔵 Setup Time: {:.2?}\n", duration));
+
+    output
 }
 
 #[command]
-pub fn kr_peks_extract(id: String) -> String {
-    unsafe {
-        if let Some(ref params) = PARAMS {
-            let mut pk = PublicKey::new();
-            let mut sk = PrivateKey::new();
-            krpeks_core::keygen(params, &mut pk, &mut sk);
+pub fn kr_peks_keygen() -> String {
+    let start_time = Instant::now();
 
-            PK = Some(pk);
-            SK = Some(sk);
+    let params_lock = PARAMS.lock().unwrap();
+    if let Some(ref params) = *params_lock {
+        let mut pk = PublicKey::new();
+        let mut sk = PrivateKey::new();
 
-            "✅ KR-PEKS Key generation complete!".into()
-        } else {
-            "❌ Error: KR-PEKS Setup not done yet!".into()
-        }
+        krpeks_core::keygen(params, &mut pk, &mut sk);
+
+        *PK.lock().unwrap() = Some(pk);
+        *SK.lock().unwrap() = Some(sk);
+
+        let duration = start_time.elapsed();
+        *TOTAL_RUNTIME.lock().unwrap() += duration.as_secs_f64(); // accumulate
+
+        let mut output = String::new();
+        output.push_str("✅ KR-PEKS Keygen Complete!\n\n");
+        output.push_str(&format!("\n🟢 Keygen Time: {:.2?}\n", duration));
+
+        output
+    } else {
+        "❌ Error: KR-PEKS setup not done yet!".into()
     }
 }
 
-
 #[command]
-pub fn kr_peks_encrypt(id: String, plaintext: String) -> String {
-    unsafe {
-        if let (Some(ref params), Some(ref pk)) = (PARAMS.as_ref(), PK.as_ref()) {
-            // Join id + plaintext as the keyword
-            let keyword = format!("{}{}", id, plaintext);
-            let keyword_bytes = string_to_bytes(&keyword);
-            if let Some(ct) = krpeks_core::peks(params, pk, &keyword_bytes) {
-                CIPHERTEXT = Some(ct);
-                "✅ KR-PEKS Encryption complete!".into()
-            } else {
-                "❌ KR-PEKS Encryption failed!".into()
+pub fn kr_peks_encrypt(keyword: String) -> String {
+    let start_time = Instant::now();
+
+    let params_lock = PARAMS.lock().unwrap();
+    let pk_lock = PK.lock().unwrap();
+
+    if let (Some(ref params), Some(ref pk)) = (params_lock.as_ref(), pk_lock.as_ref()) {
+        let keyword_bytes = string_to_bytes(&keyword);
+
+        let ct = krpeks_core::peks(params, pk, &keyword_bytes);
+
+        match ct {
+            Some(ciphertext) => {
+                *CIPHERTEXT.lock().unwrap() = Some(ciphertext);
+
+                let duration = start_time.elapsed();
+                *TOTAL_RUNTIME.lock().unwrap() += duration.as_secs_f64(); // accumulate
+
+                let mut output = String::new();
+                output.push_str("✅ KR-PEKS Encryption Complete!\n\n");
+                output.push_str(&format!("\n🟣 Encryption Time: {:.2?}\n", duration));
+
+                output
             }
-        } else {
-            "❌ Error: KR-PEKS Extract not done yet!".into()
+            None => {
+                "❌ Error: Encryption failed. Invalid public key.".into()
+            }
         }
+    } else {
+        "❌ Error: Keygen not done yet!".into()
     }
 }
 
 #[command]
-pub fn kr_peks_trapdoor(id: String) -> String {
-    unsafe {
-        if let (Some(ref params), Some(ref sk)) = (PARAMS.as_ref(), SK.as_ref()) {
-            let id_bytes = string_to_bytes(&id);
-            let td = krpeks_core::trapdoor(params, sk, &id_bytes);
-            TRAPDOOR = Some(td);
-            "✅ KR-PEKS Trapdoor generation complete!".into()
-        } else {
-            "❌ Error: KR-PEKS Extract not done yet!".into()
-        }
+pub fn kr_peks_trapdoor(keyword: String) -> String {
+    let start_time = Instant::now();
+
+    let params_lock = PARAMS.lock().unwrap();
+    let pk_lock = PK.lock().unwrap();
+    let sk_lock = SK.lock().unwrap();
+
+    if let (Some(ref params), Some(ref _pk), Some(ref sk)) = (
+        params_lock.as_ref(), pk_lock.as_ref(), sk_lock.as_ref()
+    ) {
+        let keyword_bytes = string_to_bytes(&keyword);
+
+        let td = krpeks_core::trapdoor(params, sk, &keyword_bytes);
+
+        *TRAPDOOR.lock().unwrap() = Some(td);
+
+        let duration = start_time.elapsed();
+        *TOTAL_RUNTIME.lock().unwrap() += duration.as_secs_f64(); // accumulate
+
+        let mut output = String::new();
+        output.push_str("✅ KR-PEKS Trapdoor Generation Complete!\n\n");
+        output.push_str(&format!("\n🟠 Trapdoor Time: {:.2?}\n", duration));
+
+        output
+    } else {
+        "❌ Error: Keygen not done yet!".into()
     }
 }
 
 #[command]
 pub fn kr_peks_test() -> String {
-    unsafe {
-        if let (Some(ref ct), Some(ref td)) = (CIPHERTEXT.as_ref(), TRAPDOOR.as_ref()) {
-            if krpeks_core::test(ct, td) {
-                "✅ KR-PEKS Test successful!".into()
-            } else {
-                "❌ KR-PEKS Test failed.".into()
-            }
+    let start_time = Instant::now();
+
+    let ct_lock = CIPHERTEXT.lock().unwrap();
+    let td_lock = TRAPDOOR.lock().unwrap();
+
+    if let (Some(ref ct), Some(ref td)) = (ct_lock.as_ref(), td_lock.as_ref()) {
+        let result = krpeks_core::test(ct, td);
+
+        let duration = start_time.elapsed();
+        *TOTAL_RUNTIME.lock().unwrap() += duration.as_secs_f64(); // accumulate
+
+        let total_runtime = *TOTAL_RUNTIME.lock().unwrap(); // fetch final total
+
+        let mut output = String::new();
+        if result {
+            output.push_str("✅ KR-PEKS Test Successful!\n\n");
         } else {
-            "❌ Error: Need encryption and trapdoor first!".into()
+            output.push_str("❌ KR-PEKS Test Failed!\n\n");
         }
+
+        output.push_str(&format!("⚡ Test Time: {:.2?}\n", duration));
+        output.push_str(&format!("🏁 Total Computation Time: {:.2} seconds\n", total_runtime));
+
+        output
+    } else {
+        "❌ Error: Need to run encryption and trapdoor first!".into()
     }
 }

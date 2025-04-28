@@ -59,6 +59,17 @@ impl Params {
         println!("g2: {}", ecp_to_hex(&self.g2));
         println!("========End of Params=========");
     }
+
+    pub fn format_full(&self) -> String {
+        format!(
+            "k: {}\norder: {}\nmsk: {}\ng1: {}\ng2: {}",
+            self.k,
+            big_to_hex(&self.order),
+            big_to_hex(&self.msk),
+            ecp_to_hex(&self.g1),
+            ecp_to_hex(&self.g2)
+        )
+    }
 }
 
 fn big_to_hex(b: &big::BIG) -> String {

@@ -57,6 +57,14 @@ impl Ciphertext {
         println!("U: {}", big_to_hex(&self.u));
         println!("========End of Ciphertext=========");
     }
+    pub fn format_full(&self) -> String {
+        format!(
+            "C1: {}\nC2: {}\nU: {}",
+            ecp_to_hex(&self.c1),
+            ecp_to_hex(&self.c2),
+            big_to_hex(&self.u)
+        )
+    }
 
 }
 

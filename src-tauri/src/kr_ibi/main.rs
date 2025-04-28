@@ -16,9 +16,9 @@ use rand::RngCore;
 use mcore::ed25519::big::BIG;
 use mcore::ed25519::ecp::ECP;
 
-pub fn setup(params: &mut Params) {
+pub fn setup(params: &mut Params, k: usize) {
     let start = Instant::now();
-    let k = 20;
+
     let order = big::BIG::new_ints(&rom::CURVE_ORDER);
 
     let g = ecp::ECP::generator();
@@ -172,11 +172,12 @@ pub fn verify(
 fn main() {
     let start_total = Instant::now();
     let id: &str = "aniksen360@mail.com";
+    let k = 20;
     let id = string_to_bytes(id);
 
     let mut params: Params = Params::new();
 
-    setup(&mut params);
+    setup(&mut params, k);
     params.print();
 
     let (fID1, fID2): (BIG, BIG) = extract(&params, &id);

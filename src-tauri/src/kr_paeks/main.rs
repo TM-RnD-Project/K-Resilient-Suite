@@ -39,9 +39,8 @@ pub fn gen_seed() -> RAND {
 }
 
 /// KR-PAEKS Setup: Generates system parameters and the master secret key.
-pub fn setup(params: &mut Params){
+pub fn setup(params: &mut Params, k: usize){
 
-    let k = 1000; //initiates the value of K
     let mut rng = gen_seed();
     let order = big::BIG::new_ints(&mcore::ed25519::rom::CURVE_ORDER);
     let msk = big::BIG::randomnum(&order, &mut rng);
@@ -295,6 +294,8 @@ pub fn test(ciphertext: &Ciphertext, trapdoor: &Trapdoor) -> bool {
 
 /// Main function: Runs the full KR-PAEKS scheme
 fn main(){
+    let k = 20;
+
     let keyword_str = "secure";
     let keyword = hash_to_big(keyword_str);
 
@@ -310,7 +311,7 @@ fn main(){
 
     // Setup
     let setup_start = Instant::now();
-    setup(&mut params);
+    setup(&mut params, k);
     let setup_time = setup_start.elapsed();
     params.print();
 

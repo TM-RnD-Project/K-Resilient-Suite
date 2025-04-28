@@ -18,8 +18,8 @@ use mysql::prelude::*;
 use base64::*;
 use serde_json::{json, Value};
 
-pub fn setup(params: &mut Params) {
-    let k = 20;
+pub fn setup(params: &mut Params, k: usize) {
+
     let order = big::BIG::new_ints(&rom::CURVE_ORDER);
 
     let mut rng = gen_seed();
@@ -105,7 +105,7 @@ pub fn test(c: &Ciphertext, t: &Trapdoor) -> bool {
 fn main() {
 
     let w = "urgent";
-
+    let k = 20;
     // Convert strings to byte arrays
     let w_bytes = string_to_bytes(w);
 
@@ -188,7 +188,7 @@ fn main() {
     if *&args.len() <= 1 {
 
         let start = Instant::now();
-        setup(&mut params);
+        setup(&mut params, k);
         let duration = start.elapsed();
         println!("Setup took: {:?}", duration);
 

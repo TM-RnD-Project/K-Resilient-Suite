@@ -40,6 +40,14 @@ impl PublicKey {
         }
         // println!("========End of Public Key=========");
     }
+
+    pub fn format_full(&self) -> String {
+        let mut output = String::new();
+        for i in 0..self.dt.len() {
+            output.push_str(&format!("dt[{}]: {}\n", i, ecp_to_hex(&self.dt[i])));
+        }
+        output
+    }
 }
 
 fn big_to_hex(b: &big::BIG) -> String {

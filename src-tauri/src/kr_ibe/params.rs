@@ -149,6 +149,47 @@ impl Params {
         }
         println!("========End of Params=========");
     }
+
+    pub fn format_full(&self) -> String {
+        let mut output = String::new();
+
+        output.push_str("========Begin Params=========\n");
+        output.push_str(&format!("k: {}\n", self.k));
+        output.push_str(&format!("order: {}\n", big_to_hex(&self.order)));
+        output.push_str(&format!("g1: {}\n", ecp_to_hex(&self.g1)));
+        output.push_str(&format!("g2: {}\n", ecp_to_hex(&self.g2)));
+
+        for i in 0..self.At.len() {
+            output.push_str(&format!("At[{}]: {}\n", i, ecp_to_hex(&self.At[i])));
+        }
+        for i in 0..self.Bt.len() {
+            output.push_str(&format!("Bt[{}]: {}\n", i, ecp_to_hex(&self.Bt[i])));
+        }
+        for i in 0..self.Dt.len() {
+            output.push_str(&format!("Dt[{}]: {}\n", i, ecp_to_hex(&self.Dt[i])));
+        }
+        for i in 0..self.f1.get_degree() {
+            output.push_str(&format!("f1[{}]: {}\n", i, big_to_hex(&self.f1.get_coeff_at(i))));
+        }
+        for i in 0..self.f2.get_degree() {
+            output.push_str(&format!("f2[{}]: {}\n", i, big_to_hex(&self.f2.get_coeff_at(i))));
+        }
+        for i in 0..self.h1.get_degree() {
+            output.push_str(&format!("h1[{}]: {}\n", i, big_to_hex(&self.h1.get_coeff_at(i))));
+        }
+        for i in 0..self.h2.get_degree() {
+            output.push_str(&format!("h2[{}]: {}\n", i, big_to_hex(&self.h2.get_coeff_at(i))));
+        }
+        for i in 0..self.p1.get_degree() {
+            output.push_str(&format!("p1[{}]: {}\n", i, big_to_hex(&self.p1.get_coeff_at(i))));
+        }
+        for i in 0..self.p2.get_degree() {
+            output.push_str(&format!("p2[{}]: {}\n", i, big_to_hex(&self.p2.get_coeff_at(i))));
+        }
+        output.push_str("========End of Params=========\n");
+
+        output
+    } 
 }
 
 fn big_to_hex(b: &big::BIG) -> String {

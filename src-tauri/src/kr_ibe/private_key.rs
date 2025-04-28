@@ -66,6 +66,21 @@ impl PrivateKey {
         println!("p2ID: {}", big_to_hex(&self.p2ID));
         println!("========End of Private Key=========");
     }
+
+    pub fn format_full(&self) -> String {
+        let mut output = String::new();
+        output.push_str("========Begin Private Key=========\n");
+
+        output.push_str(&format!("f1ID: {}\n", big_to_hex(&self.f1ID)));
+        output.push_str(&format!("f2ID: {}\n", big_to_hex(&self.f2ID)));
+        output.push_str(&format!("h1ID: {}\n", big_to_hex(&self.h1ID)));
+        output.push_str(&format!("h2ID: {}\n", big_to_hex(&self.h2ID)));
+        output.push_str(&format!("p1ID: {}\n", big_to_hex(&self.p1ID)));
+        output.push_str(&format!("p2ID: {}\n", big_to_hex(&self.p2ID)));
+
+        output.push_str("========End of Private Key=========\n");
+        output
+    }
 }
 
 fn big_to_hex(b: &big::BIG) -> String {

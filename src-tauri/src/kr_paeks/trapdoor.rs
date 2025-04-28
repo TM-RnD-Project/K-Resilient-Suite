@@ -44,6 +44,14 @@ impl Trapdoor {
         println!("========End of Trapdoor=========");
     }
 
+    pub fn format_full(&self) -> String {
+        let mut output = String::new();
+        output.push_str(&format!("t1: {}\n", ecp_to_hex(&self.t1)));
+        output.push_str(&format!("t2: {}\n", ecp_to_hex(&self.t2)));
+        output.push_str(&format!("u_cap: {}\n", big_to_hex(&self.u_cap)));
+        output
+    }
+
 }
 
 fn big_to_hex(b: &big::BIG) -> String {

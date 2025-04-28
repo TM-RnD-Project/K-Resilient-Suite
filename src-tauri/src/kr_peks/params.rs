@@ -68,4 +68,7 @@ impl Params {
         true
     }
 
+    pub fn format_full(&self) -> String {
+        format!("g1: {}\ng2: {}\norder: {}\nk: {}", ecp_to_hex(&self.g1), ecp_to_hex(&self.g2), big_to_hex(&self.order), self.k)
+    }
 }

@@ -41,4 +41,8 @@ impl Trapdoor {
         println!("p2: {}", big_to_hex(&self.p2));
         println!("========End of Trapdoor=========");
     }
+
+    pub fn format_full(&self) -> String {
+        format!("p1: {}\np2: {}", big_to_hex(&self.p1), big_to_hex(&self.p2))
+    }
 }

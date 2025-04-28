@@ -28,4 +28,8 @@ impl Plaintext {
     pub fn to_string(&self) -> String {
         self.plaintext.clone()
     }
+
+    pub fn format_full(&self) -> String {
+        format!("Plaintext: {}", self.plaintext)
+    }
 }

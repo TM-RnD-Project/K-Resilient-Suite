@@ -63,6 +63,18 @@ impl Ciphertext {
         println!("aes_cipher: {}", bytes_to_hex(&self.aes_cipher));
         println!("========End of Ciphertext=========");
     }
+
+    pub fn format_full(&self) -> String {
+        let mut str = String::new();
+        str.push_str("\n========Begin Ciphertext=========\n");
+        str.push_str(&format!("u1: {}\n", ecp_to_hex(&self.u1)));
+        str.push_str(&format!("u2: {}\n", ecp_to_hex(&self.u2)));
+        str.push_str(&format!("c: {}\n", ecp_to_hex(&self.c)));
+        str.push_str(&format!("v_id: {}\n", ecp_to_hex(&self.v_id)));
+        str.push_str(&format!("aes_cipher: {}\n", bytes_to_hex(&self.aes_cipher)));
+        str.push_str("========End of Ciphertext========\n");
+        return str;
+    }
 }
 
 fn big_to_hex(b: &big::BIG) -> String {

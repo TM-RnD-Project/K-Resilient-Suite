@@ -86,6 +86,24 @@ impl Params {
             println!("msk2[{}]: {}", i, big_to_hex(&self.msk2[i]));
         }
     }
+
+    pub fn format_full(&self) -> String {
+        let mut output = String::new();
+        output.push_str("========Begin Params=========\n");
+        output.push_str(&format!("k: {}\n", self.k));
+        output.push_str(&format!("order: {}\n", big_to_hex(&self.order)));
+        output.push_str(&format!("g: {}\n", ecp_to_hex(&self.g)));
+        for i in 0..self.Dt1.len() {
+            output.push_str(&format!("Dt1[{}]: {}\n", i, ecp_to_hex(&self.Dt1[i])));
+            output.push_str(&format!("Dt2[{}]: {}\n", i, ecp_to_hex(&self.Dt2[i])));
+        }
+        for i in 0..self.msk1.len() {
+            output.push_str(&format!("msk1[{}]: {}\n", i, big_to_hex(&self.msk1[i])));
+            output.push_str(&format!("msk2[{}]: {}\n", i, big_to_hex(&self.msk2[i])));
+        }
+        output.push_str("========End Params=========");
+        output
+    }
 }
 
 fn big_to_hex(b: &big::BIG) -> String {

@@ -53,4 +53,13 @@ impl PublicKey {
         }        
         0
     }
+
+    pub fn format_full(&self) -> String {
+        let mut result = String::new();
+        for i in 0..self.Dt.len() {
+            result.push_str(&format!("Dt[{}]: {}\n", i, ecp_to_hex(&self.Dt[i])));
+        }
+        result
+    }
+
 }

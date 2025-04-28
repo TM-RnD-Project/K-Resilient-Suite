@@ -75,6 +75,15 @@ impl Polynomial {
         println!("========End of Polynomial=========");
     }
 
+    pub fn format_full(&self) -> String {
+        let mut result = String::new();
+        result.push_str(&format!("degree: {}\norder: {}\n", self.degree, big_to_hex(&self.order)));
+        for i in 0..self.coeff.len() {
+            result.push_str(&format!("coeff[{}]: {}\n", i, big_to_hex(&self.coeff[i])));
+        }
+        result
+    }
+
     pub fn is_valid(&self) -> bool {
         if self.degree == 0 || big::BIG::comp(&self.order, &big::BIG::new()) == 0 || self.coeff.is_empty() || self.coeff.len() != self.degree {
             return false;

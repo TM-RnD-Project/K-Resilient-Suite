@@ -46,6 +46,17 @@ impl PrivateKey {
         // println!("========End of Private Key=========");
     }
 
+    pub fn format_full(&self) -> String {
+        let mut output = String::new();
+        for i in 0..self.p1.get_degree() {
+            output.push_str(&format!("P1[{}]: {}\n", i, big_to_hex(&self.p1.get_coeff_at(i))));
+        }
+        for i in 0..self.p2.get_degree() {
+            output.push_str(&format!("P2[{}]: {}\n", i, big_to_hex(&self.p2.get_coeff_at(i))));
+        }
+        output
+    }
+
 }
 
 fn big_to_hex(b: &big::BIG) -> String {

@@ -25,9 +25,8 @@ use generic_array::typenum::U32;
 
 use std::time::Instant;
 
-pub fn setup(params: &mut Params) {
+pub fn setup(params: &mut Params, k: usize) {
 
-    let k = 20; //initiates the value of K
     let order = big::BIG::new_ints(&rom::CURVE_ORDER);
 
     let mut rng = gen_seed();
@@ -301,6 +300,7 @@ fn main() {
 
     let w = "Urgent";
     let id = "alice@mail.com";
+    let k = 20;
 
     // Convert strings to byte arrays
     let w_bytes = string_to_bytes(w);
@@ -312,7 +312,7 @@ fn main() {
     let mut plaintext = Plaintext::new();
 
     let start = Instant::now();
-    setup(&mut params);
+    setup(&mut params, k);
     let duration = start.elapsed();
     params.print();
     println!("Setup took: {:?}", duration);
