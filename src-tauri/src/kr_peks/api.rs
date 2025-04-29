@@ -57,6 +57,10 @@ pub fn kr_peks_keygen() -> String {
 
         let mut output = String::new();
         output.push_str("✅ KR-PEKS Keygen Complete!\n\n");
+        output.push_str("🔒 Private Key:\n");
+        output.push_str(&SK.lock().unwrap().as_ref().unwrap().format_full());
+        output.push_str("\n\n🔑 Public Key:\n");
+        output.push_str(&PK.lock().unwrap().as_ref().unwrap().format_full());
         output.push_str(&format!("\n🟢 Keygen Time: {:.2?}\n", duration));
 
         output
@@ -86,6 +90,8 @@ pub fn kr_peks_encrypt(keyword: String) -> String {
 
                 let mut output = String::new();
                 output.push_str("✅ KR-PEKS Encryption Complete!\n\n");
+                output.push_str("📦 Ciphertext:\n");
+                output.push_str(&CIPHERTEXT.lock().unwrap().as_ref().unwrap().format_full());
                 output.push_str(&format!("\n🟣 Encryption Time: {:.2?}\n", duration));
 
                 output
@@ -121,6 +127,8 @@ pub fn kr_peks_trapdoor(keyword: String) -> String {
 
         let mut output = String::new();
         output.push_str("✅ KR-PEKS Trapdoor Generation Complete!\n\n");
+        output.push_str("🔑 Trapdoor:\n");
+        output.push_str(&TRAPDOOR.lock().unwrap().as_ref().unwrap().format_full());
         output.push_str(&format!("\n🟠 Trapdoor Time: {:.2?}\n", duration));
 
         output
@@ -152,10 +160,20 @@ pub fn kr_peks_test() -> String {
         }
 
         output.push_str(&format!("⚡ Test Time: {:.2?}\n", duration));
-        output.push_str(&format!("🏁 Total Computation Time: {:.2} seconds\n", total_runtime));
+        output.push_str(&format!("🏁 Total Computation Time: {}\n", format_runtime(total_runtime)));
 
         output
     } else {
         "❌ Error: Need to run encryption and trapdoor first!".into()
+    }
+}
+
+fn format_runtime(seconds: f64) -> String {
+    if seconds < 1.0 {
+        // Less than 1 second → show milliseconds
+        format!("{:.0} ms", seconds * 1000.0)
+    } else {
+        // 1 second or more → show seconds
+        format!("{:.2} s", seconds)
     }
 }

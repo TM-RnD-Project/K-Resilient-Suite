@@ -125,7 +125,17 @@ pub fn kr_ibe_decrypt() -> String {
     output.push_str("✅ Decryption Completed.\n\n");
     output.push_str(&pt_read.as_ref().unwrap().format_full());
     output.push_str(&format!("\n🟠 Decryption Time: {:.2?}\n", decryption_duration));
-    output.push_str(&format!("🏁 Total Computation Time: {:.2} seconds\n", total_runtime)); // final total
+    output.push_str(&format!("🏁 Total Computation Time: {}\n", format_runtime(total_runtime)));
 
     output
+}
+
+fn format_runtime(seconds: f64) -> String {
+    if seconds < 1.0 {
+        // Less than 1 second → show milliseconds
+        format!("{:.0} ms", seconds * 1000.0)
+    } else {
+        // 1 second or more → show seconds
+        format!("{:.2} s", seconds)
+    }
 }

@@ -64,7 +64,15 @@ pub fn kr_paeks_keygen() -> String {
 
         let mut output = String::new();
         output.push_str("✅ KR-PAEKS Keygen Complete!\n\n");
-        output.push_str(&format!("\nKeygen Time: {:.2?}\n", duration));
+        output.push_str("🔒 Sender Private Key:\n");
+        output.push_str(&SENDER_SK.lock().unwrap().as_ref().unwrap().format_full());
+        output.push_str("\n\n🔑 Sender Public Key:\n");
+        output.push_str(&SENDER_PK.lock().unwrap().as_ref().unwrap().format_full());
+        output.push_str("\n\n🔒 Receiver Private Key:\n");
+        output.push_str(&RECEIVER_SK.lock().unwrap().as_ref().unwrap().format_full());
+        output.push_str("\n\n🔑 Receiver Public Key:\n");
+        output.push_str(&RECEIVER_PK.lock().unwrap().as_ref().unwrap().format_full());
+        output.push_str(&format!("\n🟢 Keygen Time: {}\n", format_runtime(duration.as_secs_f64())));
 
         output
     } else {
@@ -93,7 +101,9 @@ pub fn kr_paeks_encrypt(keyword: String) -> String {
 
         let mut output = String::new();
         output.push_str("✅ KR-PAEKS Encryption Complete!\n\n");
-        output.push_str(&format!("\n🟣 Encryption Time: {:.2?}\n", duration));
+        output.push_str("📦 Ciphertext:\n");
+        output.push_str(&CIPHERTEXT.lock().unwrap().as_ref().unwrap().format_full());
+        output.push_str(&format!("\n🟣 Encryption Time: {}\n", format_runtime(duration.as_secs_f64())));
 
         output
     } else {
@@ -122,7 +132,10 @@ pub fn kr_paeks_trapdoor(keyword: String) -> String {
 
         let mut output = String::new();
         output.push_str("✅ KR-PAEKS Trapdoor Generation Complete!\n\n");
-        output.push_str(&format!("\n🟠 Trapdoor Time: {:.2?}\n", duration));
+        output.push_str("🔑 Trapdoor:\n");
+        output.push_str(&TRAPDOOR.lock().unwrap().as_ref().unwrap().format_full());
+        output.push_str(&format!("\n🟠 Trapdoor Time: {}\n", format_runtime(duration.as_secs_f64())));
+
 
         output
     } else {
@@ -153,10 +166,21 @@ pub fn kr_paeks_test() -> String {
         }
 
         output.push_str(&format!("⚡ Test Time: {:.2?}\n", duration));
-        output.push_str(&format!("🏁 Total Computation Time: {:.2} seconds\n", total_runtime));
+        output.push_str(&format!("🏁 Total Computation Time: {}\n", format_runtime(total_runtime)));
 
         output
     } else {
         "❌ Error: Need to run encryption and trapdoor first!".into()
     }
 }
+
+fn format_runtime(seconds: f64) -> String {
+    if seconds < 1.0 {
+        // Less than 1 second → show milliseconds
+        format!("{:.0} ms", seconds * 1000.0)
+    } else {
+        // 1 second or more → show seconds
+        format!("{:.2} s", seconds)
+    }
+}
+

@@ -7,7 +7,16 @@ use once_cell::sync::Lazy;
 use std::time::Instant;
 
 static PARAMS: Lazy<Mutex<Option<Params>>> = Lazy::new(|| Mutex::new(None));
-static TOTAL_RUNTIME: Lazy<Mutex<f64>> = Lazy::new(|| Mutex::new(0.0)); // Total computation time in seconds
+static TOTAL_RUNTIME: Lazy<Mutex<f64>> = Lazy::new(|| Mutex::new(0.0));
+
+// ✅ Add this function for smart unit formatting
+fn format_runtime(seconds: f64) -> String {
+    if seconds < 1.0 {
+        format!("{:.0} ms", seconds * 1000.0)
+    } else {
+        format!("{:.2} s", seconds)
+    }
+}
 
 #[command]
 pub fn kr_ibi_setup(k: usize) -> String {
@@ -24,7 +33,7 @@ pub fn kr_ibi_setup(k: usize) -> String {
     let mut output = String::new();
     output.push_str("✅ KR-IBI Setup Complete!\n\n");
     output.push_str(&PARAMS.lock().unwrap().as_ref().unwrap().format_full());
-    output.push_str(&format!("\n🔵 Setup Time: {:.2?}\n", duration));
+    output.push_str(&format!("\n🔵 Setup Time: {}\n", format_runtime(duration.as_secs_f64())));
 
     output
 }
@@ -43,10 +52,10 @@ pub fn kr_ibi_extract(id: String) -> String {
         *TOTAL_RUNTIME.lock().unwrap() += duration.as_secs_f64(); // accumulate extract time
 
         format!(
-            "✅ KR-IBI Private Key Extracted:\n\nf(ID1): {}\nf(ID2): {}\n\n🟢 Extract Time: {:.2?}",
+            "✅ KR-IBI Private Key Extracted:\n\nf(ID1): {}\nf(ID2): {}\n\n🟢 Extract Time: {}",
             kribi_core::big_to_hex(&f1),
             kribi_core::big_to_hex(&f2),
-            duration
+            format_runtime(duration.as_secs_f64())
         )
     } else {
         "❌ Error: KR-IBI setup not done yet!".into()
@@ -73,14 +82,14 @@ pub fn kr_ibi_sign(id: String) -> String {
         *TOTAL_RUNTIME.lock().unwrap() += duration.as_secs_f64(); // accumulate sign time
 
         format!(
-            "✅ KR-IBI Signature Generated:\n\nCommit: ({}, {})\nChallenge: ({}, {})\nResponse: ({}, {})\n\n🟣 Sign Time: {:.2?}",
+            "✅ KR-IBI Signature Generated:\n\nCommit: ({}, {})\nChallenge: ({}, {})\nResponse: ({}, {})\n\n🟣 Sign Time: {}",
             kribi_core::ecp_to_hex(&g_r.0),
             kribi_core::ecp_to_hex(&g_r.1),
             kribi_core::big_to_hex(&c1),
             kribi_core::big_to_hex(&c2),
             kribi_core::big_to_hex(&s1),
             kribi_core::big_to_hex(&s2),
-            duration
+            format_runtime(duration.as_secs_f64())
         )
     } else {
         "❌ Error: KR-IBI setup not done yet!".into()
@@ -112,15 +121,15 @@ pub fn kr_ibi_verify(id: String) -> String {
 
         if valid {
             format!(
-                "✅ KR-IBI Verification Successful!\n\n🟠 Verify Time: {:.2?}\n🏁 Total Computation Time: {:.2} seconds",
-                verify_duration,
-                total_runtime
+                "✅ KR-IBI Verification Successful!\n\n🟠 Verify Time: {}\n🏁 Total Computation Time: {}",
+                format_runtime(verify_duration.as_secs_f64()),
+                format_runtime(total_runtime)
             )
         } else {
             format!(
-                "❌ KR-IBI Verification Failed!\n\n🟠 Verify Time: {:.2?}\n🏁 Total Computation Time: {:.2} seconds",
-                verify_duration,
-                total_runtime
+                "❌ KR-IBI Verification Failed!\n\n🟠 Verify Time: {}\n🏁 Total Computation Time: {}",
+                format_runtime(verify_duration.as_secs_f64()),
+                format_runtime(total_runtime)
             )
         }
     } else {
