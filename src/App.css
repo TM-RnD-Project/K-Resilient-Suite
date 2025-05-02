@@ -44,3 +44,11 @@
   border-radius: 8px;
   border: 1px solid #ccc;
 }
+
+.label {
+  font-weight: bold;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  text-align: left;
+  display: block;
+}

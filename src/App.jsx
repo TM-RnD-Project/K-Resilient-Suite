@@ -9,7 +9,7 @@ function App() {
   const [keyword, setKeyword] = useState("");
   const [scheme, setScheme] = useState("kr-ibe");
   const [extracted, setExtracted] = useState(false);
-  const [k, setK] = useState(); 
+  const [k, setK] = useState();
 
   // -------------- Commands --------------
 
@@ -23,7 +23,7 @@ function App() {
   const runExtractOrKeygen = async () => {
     if (scheme === "kr-ibe") {
       setDetails(await invoke("kr_ibe_extract", { id }));
-      setExtracted(true); // ✅ After Extract success
+      setExtracted(true);
     } else if (scheme === "kr-ibi") {
       setDetails(await invoke("kr_ibi_extract", { id }));
     } else if (scheme === "kr-peks") {
@@ -55,7 +55,6 @@ function App() {
     else if (scheme === "kr-paeks") setDetails(await invoke("kr_paeks_test"));
   };
 
-  // Reset extracted state when switching scheme
   const handleSchemeChange = (e) => {
     setScheme(e.target.value);
     setExtracted(false);
@@ -70,7 +69,7 @@ function App() {
       <div className="left-panel">
         <h2>K-Resilient Suite Demo</h2>
 
-        {/* Scheme Selector */}
+        <label className="label">Please select a scheme to test:</label>
         <select value={scheme} onChange={handleSchemeChange} className="input-box">
           <option value="kr-ibe">KR-IBE</option>
           <option value="kr-ibi">KR-IBI</option>
@@ -78,60 +77,63 @@ function App() {
           <option value="kr-paeks">KR-PAEKS</option>
         </select>
 
-        {/* k Input Box */}
+        <label className="label">Please input the value of k:</label>
         <input
           type="number"
-          placeholder="Enter k value (e.g., 20)"
+          placeholder="e.g., 20"
           value={k}
           onChange={(e) => setK(parseInt(e.target.value))}
           className="input-box"
         />
 
-        {/* Setup */}
         <button onClick={runSetup} className="action-button">🔵 Setup</button>
 
-        {/* Input Fields */}
         {(scheme === "kr-ibe" || scheme === "kr-ibi") && (
-          <input
-            type="text"
-            placeholder="Enter ID"
-            value={id}
-            onChange={(e) => setId(e.target.value)}
-            className="input-box"
-          />
+          <>
+            <label className="label">Please input the ID:</label>
+            <input
+              type="text"
+              placeholder="Enter ID"
+              value={id}
+              onChange={(e) => setId(e.target.value)}
+              className="input-box"
+            />
+          </>
         )}
 
-        {/* Extract / Keygen Button */}
         <button onClick={runExtractOrKeygen} className="action-button">
           🟢 {(scheme === "kr-paeks" || scheme === "kr-peks") ? "Keygen" : "Extract"}
         </button>
 
-        {/* Plaintext Input for KR-IBE after extract */}
         {(scheme === "kr-ibe" && extracted) && (
-          <input
-            type="text"
-            placeholder="Enter Plaintext"
-            value={plaintext}
-            onChange={(e) => setPlaintext(e.target.value)}
-            className="input-box"
-          />
+          <>
+            <label className="label">Please input the plaintext to encrypt:</label>
+            <input
+              type="text"
+              placeholder="Enter Plaintext"
+              value={plaintext}
+              onChange={(e) => setPlaintext(e.target.value)}
+              className="input-box"
+            />
+          </>
         )}
 
-        {/* Keyword Input for KR-PAEKS and KR-PEKS */}
         {(scheme === "kr-paeks" || scheme === "kr-peks") && (
-          <input
-            type="text"
-            placeholder="Enter Keyword"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            className="input-box"
-          />
+          <>
+            <label className="label">Please input the keyword:</label>
+            <input
+              type="text"
+              placeholder="Enter Keyword"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              className="input-box"
+            />
+          </>
         )}
 
-        {/* Encrypt / Sign / PEKS / PAEKS Button */}
         <button onClick={runEncryptOrSign} className="action-button">
           🟣 {scheme === "kr-ibi"
-            ? "Sign"
+            ? "Prove"
             : scheme === "kr-peks"
             ? "PEKS"
             : scheme === "kr-paeks"
@@ -139,14 +141,12 @@ function App() {
             : "Encrypt"}
         </button>
 
-        {/* Decrypt or Verify */}
         {(scheme === "kr-ibe" || scheme === "kr-ibi") && (
           <button onClick={runDecryptOrVerify} className="action-button">
             🟠 {scheme === "kr-ibi" ? "Verify" : "Decrypt"}
           </button>
         )}
 
-        {/* Trapdoor (PEKS, PAEKS) */}
         {(scheme === "kr-peks" || scheme === "kr-paeks") && (
           <>
             <button onClick={runTrapdoor} className="action-button">🟠 Trapdoor</button>
