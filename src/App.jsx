@@ -11,48 +11,68 @@ function App() {
   const [extracted, setExtracted] = useState(false);
   const [k, setK] = useState();
 
+  const divider = "\n--------------------------\n";
+
   // -------------- Commands --------------
 
   const runSetup = async () => {
-    if (scheme === "kr-ibe") setDetails(await invoke("kr_ibe_setup", { k }));
-    else if (scheme === "kr-ibi") setDetails(await invoke("kr_ibi_setup", { k }));
-    else if (scheme === "kr-peks") setDetails(await invoke("kr_peks_setup", { k }));
-    else if (scheme === "kr-paeks") setDetails(await invoke("kr_paeks_setup", { k }));
+    let result;
+    if (scheme === "kr-ibe") result = await invoke("kr_ibe_setup", { k });
+    else if (scheme === "kr-ibi") result = await invoke("kr_ibi_setup", { k });
+    else if (scheme === "kr-peks") result = await invoke("kr_peks_setup", { k });
+    else if (scheme === "kr-paeks") result = await invoke("kr_paeks_setup", { k });
+
+    setDetails(prev => prev + divider + result);
   };
 
   const runExtractOrKeygen = async () => {
+    let result;
     if (scheme === "kr-ibe") {
-      setDetails(await invoke("kr_ibe_extract", { id }));
+      result = await invoke("kr_ibe_extract", { id });
       setExtracted(true);
     } else if (scheme === "kr-ibi") {
-      setDetails(await invoke("kr_ibi_extract", { id }));
+      result = await invoke("kr_ibi_extract", { id });
     } else if (scheme === "kr-peks") {
-      setDetails(await invoke("kr_peks_keygen", { id }));
+      result = await invoke("kr_peks_keygen", { id });
     } else if (scheme === "kr-paeks") {
-      setDetails(await invoke("kr_paeks_keygen"));
+      result = await invoke("kr_paeks_keygen");
     }
+
+    setDetails(prev => prev + divider + result);
   };
 
   const runEncryptOrSign = async () => {
-    if (scheme === "kr-ibe") setDetails(await invoke("kr_ibe_encrypt", { id, plaintext }));
-    else if (scheme === "kr-ibi") setDetails(await invoke("kr_ibi_sign", { id }));
-    else if (scheme === "kr-peks") setDetails(await invoke("kr_peks_encrypt", { keyword }));
-    else if (scheme === "kr-paeks") setDetails(await invoke("kr_paeks_encrypt", { keyword }));
+    let result;
+    if (scheme === "kr-ibe") result = await invoke("kr_ibe_encrypt", { id, plaintext });
+    else if (scheme === "kr-ibi") result = await invoke("kr_ibi_sign", { id });
+    else if (scheme === "kr-peks") result = await invoke("kr_peks_encrypt", { keyword });
+    else if (scheme === "kr-paeks") result = await invoke("kr_paeks_encrypt", { keyword });
+
+    setDetails(prev => prev + divider + result);
   };
 
   const runDecryptOrVerify = async () => {
-    if (scheme === "kr-ibe") setDetails(await invoke("kr_ibe_decrypt"));
-    else if (scheme === "kr-ibi") setDetails(await invoke("kr_ibi_verify", { id }));
+    let result;
+    if (scheme === "kr-ibe") result = await invoke("kr_ibe_decrypt");
+    else if (scheme === "kr-ibi") result = await invoke("kr_ibi_verify", { id });
+
+    setDetails(prev => prev + divider + result);
   };
 
   const runTrapdoor = async () => {
-    if (scheme === "kr-peks") setDetails(await invoke("kr_peks_trapdoor", { keyword }));
-    else if (scheme === "kr-paeks") setDetails(await invoke("kr_paeks_trapdoor", { keyword }));
+    let result;
+    if (scheme === "kr-peks") result = await invoke("kr_peks_trapdoor", { keyword });
+    else if (scheme === "kr-paeks") result = await invoke("kr_paeks_trapdoor", { keyword });
+
+    setDetails(prev => prev + divider + result);
   };
 
   const runTest = async () => {
-    if (scheme === "kr-peks") setDetails(await invoke("kr_peks_test"));
-    else if (scheme === "kr-paeks") setDetails(await invoke("kr_paeks_test"));
+    let result;
+    if (scheme === "kr-peks") result = await invoke("kr_peks_test");
+    else if (scheme === "kr-paeks") result = await invoke("kr_paeks_test");
+
+    setDetails(prev => prev + divider + result);
   };
 
   const handleSchemeChange = (e) => {
@@ -157,6 +177,9 @@ function App() {
 
       <div className="right-panel">
         <h3>Details Output:</h3>
+        <button onClick={() => setDetails("")} className="action-button">
+        🧹 Clear Output
+        </button>
         <pre>{details}</pre>
       </div>
     </div>

@@ -52,3 +52,24 @@
   text-align: left;
   display: block;
 }
+
+.output-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.clear-button {
+  font-size: 12px;
+  padding: 4px 8px;
+  background-color: #e0e0e0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.clear-button:hover {
+  background-color: #d5d5d5;
+}
+
