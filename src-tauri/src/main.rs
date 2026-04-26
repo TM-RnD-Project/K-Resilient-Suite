@@ -11,6 +11,50 @@ use kr_ibi::api::*;
 use kr_peks::api::*;
 use kr_paeks::api::*;
 
+mod system;
+
+use system::{setup, user, upload, search, download, auth};
+
+#[tauri::command]
+fn setup_all(k: usize) {
+    setup::setup_all(k);
+}
+
+#[tauri::command]
+fn register(id: String) {
+    user::register_user(&id);
+}
+
+#[tauri::command]
+fn upload_file(sender: String, receiver: String, msg: String, keyword: String) {
+    upload::upload(&sender, &receiver, &msg, &keyword);
+}
+
+#[tauri::command]
+fn search_keyword(user: String, keyword: String) -> Vec<usize> {
+    search::search(&user, &keyword)
+}
+
+#[tauri::command]
+fn download_file(user: String, index: usize) -> String {
+    download::download(&user, index)
+}
+
+#[tauri::command]
+fn login_start(id: String) -> (String, String) {
+    auth::login_start(&id)
+}
+
+#[tauri::command]
+fn login_respond(id: String) -> (String, String) {
+    auth::login_respond(&id)
+}
+
+#[tauri::command]
+fn login_verify(id: String, s1: String, s2: String) -> bool {
+    auth::login_verify(&id, &s1, &s2)
+}
+
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
@@ -38,7 +82,17 @@ fn main() {
              kr_paeks_keygen,
              kr_paeks_encrypt,
              kr_paeks_trapdoor,
-             kr_paeks_test
+             kr_paeks_test,
+
+             //system
+            setup_all,
+            register,
+            upload_file,
+            search_keyword,
+            download_file,
+            login_start,
+            login_respond,
+            login_verify
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri app");

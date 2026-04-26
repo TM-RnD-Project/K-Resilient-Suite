@@ -235,6 +235,21 @@ pub fn big_to_hex(b: &big::BIG) -> String {
     bytes.iter().map(|byte| format!("{:02x}", byte)).collect()
 }
 
+pub fn hex_to_big(hex: &str) -> big::BIG {
+    let mut bytes = Vec::new();
+    for i in (0..hex.len()).step_by(2) {
+        let byte_str = &hex[i..i+2];
+        let byte = u8::from_str_radix(byte_str, 16).unwrap_or(0);
+        bytes.push(byte);
+    }
+    while bytes.len() < big::MODBYTES {
+        bytes.insert(0, 0);
+    }
+    let mut byte_array = [0u8; big::MODBYTES];
+    byte_array.copy_from_slice(&bytes[..big::MODBYTES]);
+    big::BIG::frombytes(&byte_array)
+}
+
 pub fn ecp_to_hex(p: &ecp::ECP) -> String {
     if p.is_infinity() {
         return String::from("infinity");

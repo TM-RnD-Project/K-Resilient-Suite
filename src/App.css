@@ -1,75 +1,92 @@
-.container {
+body {
+  margin: 0;
   font-family: Arial, sans-serif;
-  display: flex;
-  height: 100vh;
-  padding: 20px;
-  background-color: #f9f9f9;
+  background: #f5f7fb;
+  color: #222;
 }
 
-.left-panel {
-  width: 40%;
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-  border-right: 2px solid #ddd;
+.app-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px;
 }
 
-.right-panel {
-  width: 60%;
+.auth-card,
+.section-card {
+  background: white;
   padding: 20px;
-  background-color: #ffffff;
-  border-radius: 10px;
-  margin-left: 20px;
-  box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
-  overflow: auto;
-}
-
-.action-button {
-  margin-top: 10px;
+  border-radius: 12px;
   margin-bottom: 20px;
-  padding: 10px;
-  font-size: 16px;
-  border-radius: 8px;
-  background-color: #007BFF;
-  color: #fff;
-  border: none;
-  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 }
 
-.input-box {
+.auth-card input,
+.section-card input,
+.section-card textarea {
+  width: 100%;
   margin-top: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 14px;
   padding: 10px;
-  font-size: 16px;
-  border-radius: 8px;
   border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
 }
 
-.label {
-  font-weight: bold;
+.section-card textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #2563eb;
+  color: white;
+  margin-right: 10px;
+}
+
+button:hover {
+  background: #1d4ed8;
+}
+
+button:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.auth-buttons {
+  display: flex;
+  gap: 12px;
   margin-top: 10px;
-  margin-bottom: 5px;
-  text-align: left;
-  display: block;
 }
 
-.output-header {
+.status-text {
+  margin-top: 14px;
+  color: #444;
+}
+
+.dashboard-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 24px;
 }
 
-.clear-button {
-  font-size: 12px;
-  padding: 4px 8px;
-  background-color: #e0e0e0;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  cursor: pointer;
+.welcome-text {
+  margin-right: 12px;
+  font-weight: bold;
 }
 
-.clear-button:hover {
-  background-color: #d5d5d5;
+.results-block {
+  margin-top: 20px;
 }
 
+.message-box {
+  background: #f8fafc;
+  border: 1px solid #dbeafe;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 10px;
+}

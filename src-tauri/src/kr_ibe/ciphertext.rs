@@ -3,6 +3,7 @@ extern crate mcore;
 use mcore::ed25519::big;
 use mcore::ed25519::ecp;
 
+#[derive(Clone)]
 pub struct Ciphertext {
     u1: ecp::ECP,
     u2: ecp::ECP,

@@ -2,6 +2,7 @@ extern crate mcore;
 
 use mcore::ed25519::big;
 
+#[derive(Clone)]
 pub struct PrivateKey {
     f1ID: big::BIG,
     f2ID: big::BIG,

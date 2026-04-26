@@ -3,6 +3,7 @@ use mcore::ed25519::big;
 use mcore::rand::RAND;
 use std::fmt;
 
+#[derive(Clone)]
 /// Polynomial operations.
 pub struct Polynomial {
     degree: usize,

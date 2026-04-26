@@ -6,6 +6,7 @@ use mcore::ed25519::ecp;
 use super::polynomial;
 use super::polynomial::Polynomial;
 
+#[derive(Clone)]
 pub struct Params {
     k: usize,
     order: big::BIG,

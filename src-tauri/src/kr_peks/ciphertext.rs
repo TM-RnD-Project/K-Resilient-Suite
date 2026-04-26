@@ -1,6 +1,7 @@
 use super::utils::ecp_to_hex;
 use mcore::ed25519::ecp;
 
+#[derive(Clone)]
 pub struct Ciphertext {
     u1: ecp::ECP,
     u2: ecp::ECP,
