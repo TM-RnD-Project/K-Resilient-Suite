@@ -2,6 +2,7 @@ use crate::system::state::{APP_STATE, StoredData};
 
 use crate::kr_ibe::{main as kribe_core, ciphertext::Ciphertext};
 use crate::kr_peks::main as krpeks_core;
+use crate::system::utils::id_to_bytes;
 
 pub fn upload(sender: &str, receiver: &str, msg: &str, keyword: &str) {
     let mut state = APP_STATE.lock().unwrap();
@@ -13,7 +14,7 @@ pub fn upload(sender: &str, receiver: &str, msg: &str, keyword: &str) {
     // -------- IBE --------
     let mut ct = Ciphertext::new();
 
-    let receiver_bytes = receiver.as_bytes().to_vec();
+    let receiver_bytes = id_to_bytes(receiver);
     let msg_bytes = msg.as_bytes().to_vec();
 
     kribe_core::encryption(

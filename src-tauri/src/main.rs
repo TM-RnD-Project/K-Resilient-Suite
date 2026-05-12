@@ -41,17 +41,17 @@ fn download_file(user: String, index: usize) -> String {
 }
 
 #[tauri::command]
-fn login_start(id: String) -> (String, String) {
+fn login_start(id: String) -> Result<(String, String), String> {
     auth::login_start(&id)
 }
 
 #[tauri::command]
-fn login_respond(id: String) -> (String, String) {
+fn login_respond(id: String) -> Result<(String, String), String> {
     auth::login_respond(&id)
 }
 
 #[tauri::command]
-fn login_verify(id: String, s1: String, s2: String) -> bool {
+fn login_verify(id: String, s1: String, s2: String) -> Result<bool, String> {
     auth::login_verify(&id, &s1, &s2)
 }
 

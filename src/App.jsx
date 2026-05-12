@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import AuthPage from "./components/AuthPage";
 import Dashboard from "./components/Dashboard";
 import "./App.css";
@@ -6,23 +7,48 @@ import "./App.css";
 function App() {
   const [currentUser, setCurrentUser] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [setupError, setSetupError] = useState("");
 
-  const handleLoginSuccess = (userId) => {
-    setCurrentUser(userId);
-    setIsLoggedIn(true);
-  };
+  useEffect(() => {
+    async function init() {
+      try {
+        await invoke("setup_all", { k: 3 });
+        setReady(true);
+      } catch (err) {
+        console.error(err);
+        setSetupError(String(err));
+      }
+    }
 
-  const handleLogout = () => {
-    setCurrentUser("");
-    setIsLoggedIn(false);
-  };
+    init();
+  }, []);
+
+  if (setupError) {
+    return <p>Setup failed: {setupError}</p>;
+  }
+
+  if (!ready) {
+    return <p>Initialising cryptographic system...</p>;
+  }
 
   return (
     <div className="app-container">
       {!isLoggedIn ? (
-        <AuthPage onLoginSuccess={handleLoginSuccess} />
+        <AuthPage
+          onLoginSuccess={(id) => {
+            setCurrentUser(id);
+            setIsLoggedIn(true);
+          }}
+        />
       ) : (
-        <Dashboard user={currentUser} onLogout={handleLogout} />
+        <Dashboard
+          user={currentUser}
+          onLogout={() => {
+            setCurrentUser("");
+            setIsLoggedIn(false);
+          }}
+        />
       )}
     </div>
   );
