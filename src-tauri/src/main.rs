@@ -31,8 +31,21 @@ fn upload_file(
     receiver: String,
     msg: String,
     keyword: String,
+    payload_type: String,
+    file_name: Option<String>,
+    mime_type: Option<String>,
+    content_base64: Option<String>,
 ) -> Result<(), String> {
-    upload::upload(&sender, &receiver, &msg, &keyword)
+    upload::upload(
+        &sender,
+        &receiver,
+        &msg,
+        &keyword,
+        &payload_type,
+        file_name,
+        mime_type,
+        content_base64,
+    )
 }
 
 #[tauri::command]
@@ -41,7 +54,7 @@ fn search_keyword(user: String, keyword: String) -> Result<Vec<usize>, String> {
 }
 
 #[tauri::command]
-fn download_file(user: String, index: usize) -> Result<String, String> {
+fn download_file(user: String, index: usize) -> Result<system::state::SharedPayload, String> {
     download::download(&user, index)
 }
 

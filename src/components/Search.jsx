@@ -45,14 +45,14 @@ export default function Search({ user }) {
 
   const handleDownload = async (index) => {
     try {
-      const message = await invoke("download_file", {
+      const payload = await invoke("download_file", {
         user,
         index,
       });
 
       setDownloadedMessages((prev) => [
         ...prev,
-        { index, content: message },
+        { index, payload },
       ]);
     } catch (error) {
       console.error(error);
@@ -60,9 +60,17 @@ export default function Search({ user }) {
     }
   };
 
+  const buildDataUrl = (payload) => {
+    if (!payload?.contentBase64) {
+      return "";
+    }
+
+    return `data:${payload.mimeType || "application/octet-stream"};base64,${payload.contentBase64}`;
+  };
+
   return (
     <div className="section-card">
-      <h2>Authenticated Search over Encrypted Messages</h2>
+      <h2>Authenticated Search over Encrypted Data</h2>
 
       <input
         type="text"
@@ -105,7 +113,27 @@ export default function Search({ user }) {
           downloadedMessages.map((item, i) => (
             <div key={`${item.index}-${i}`} className="message-box">
               <strong>From result #{item.index}</strong>
-              <p>{item.content}</p>
+              {item.payload.payloadType === "text" ? (
+                <p>{item.payload.content}</p>
+              ) : (
+                <div className="downloaded-file">
+                  {item.payload.payloadType === "image" && (
+                    <img
+                      src={buildDataUrl(item.payload)}
+                      alt={item.payload.fileName || "Downloaded image"}
+                    />
+                  )}
+                  <div>
+                    <p>{item.payload.content || "Encrypted file restored."}</p>
+                    <a
+                      href={buildDataUrl(item.payload)}
+                      download={item.payload.fileName || "downloaded-file"}
+                    >
+                      Download {item.payload.fileName || "file"}
+                    </a>
+                  </div>
+                </div>
+              )}
             </div>
           ))
         )}

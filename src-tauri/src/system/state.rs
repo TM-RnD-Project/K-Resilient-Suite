@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Mutex;
 use once_cell::sync::Lazy;
+use serde::{Deserialize, Serialize};
 
 use mcore::ed25519::big;
 use mcore::ed25519::ecp;
@@ -40,6 +41,16 @@ pub struct StoredData {
     pub sender: String,
     pub owner: String,
     pub keyword_hash: String,
+}
+
+#[derive(Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SharedPayload {
+    pub payload_type: String,
+    pub content: String,
+    pub file_name: Option<String>,
+    pub mime_type: Option<String>,
+    pub content_base64: Option<String>,
 }
 
 pub struct AppState {
