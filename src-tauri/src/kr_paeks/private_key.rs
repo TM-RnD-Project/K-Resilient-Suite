@@ -7,6 +7,7 @@ use super::polynomial;
 use super::polynomial::Polynomial;
 use std::fmt;
 
+#[derive(Clone)]
 pub struct PrivateKey {
     pub p1: polynomial::Polynomial,
     pub p2: polynomial::Polynomial,

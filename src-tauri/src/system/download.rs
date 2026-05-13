@@ -1,39 +1,41 @@
 use crate::system::state::APP_STATE;
-use crate::kr_ibe::{main as kribe_core, plaintext::Plaintext, private_key::PrivateKey, params::Params};
+use crate::kr_ibe::{main as kribe_core, plaintext::Plaintext};
 
-pub fn download(user: &str, index: usize) -> String {
-    // -------- Step 1: safe state access --------
-    let (params, sk) = {
-        let state = APP_STATE.lock().unwrap();
+pub fn download(user: &str, index: usize) -> Result<String, String> {
+    let state = APP_STATE.lock().map_err(|_| "State lock failed")?;
 
-        let params = match &state.ibe_params {
-            Some(p) => p.clone(),
-            None => return "Error: system not initialized".to_string(),
-        };
+    if !state.active_sessions.get(user).unwrap_or(&false) {
+        return Err("User is not authenticated.".to_string());
+    }
 
-        let sk = match state.users.get(user) {
-            Some(k) => k.clone(),
-            None => return "Error: user not registered".to_string(),
-        };
+    let params = state
+        .ibe_params
+        .as_ref()
+        .ok_or("IBE params not initialised.")?
+        .clone();
 
-        (params, sk)
-    };
+    let sk = state
+        .users
+        .get(user)
+        .ok_or("User private key not found.")?
+        .clone();
 
-    // -------- Step 2: safe index check --------
-    let mut ct = {
-        let state = APP_STATE.lock().unwrap();
+    let data = state
+        .database
+        .get(index)
+        .ok_or("Invalid ciphertext index.")?;
 
-        if index >= state.database.len() {
-            return "Error: invalid file index".to_string();
-        }
+    if data.owner != user {
+        return Err("Access denied. This ciphertext does not belong to this user.".to_string());
+    }
 
-        state.database[index].ct.clone()
-    };
+    let mut ct = data.ct.clone();
 
-    // -------- Step 3: decrypt --------
+    drop(state);
+
     let mut pt = Plaintext::new();
 
     kribe_core::decryption(&params, &sk, &mut ct, &mut pt);
 
-    pt.format_full()
+    Ok(pt.format_full())
 }

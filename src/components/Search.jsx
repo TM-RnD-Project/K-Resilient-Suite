@@ -6,14 +6,21 @@ export default function Search({ user }) {
   const [results, setResults] = useState([]);
   const [downloadedMessages, setDownloadedMessages] = useState([]);
   const [status, setStatus] = useState("");
+  const [hasSearched, setHasSearched] = useState(false);
 
   const handleSearch = async () => {
     if (!keyword.trim()) {
       setStatus("Please enter a keyword.");
+      setResults([]);
+      setDownloadedMessages([]);
+      setHasSearched(false);
       return;
     }
 
     try {
+      setResults([]);
+      setDownloadedMessages([]);
+      setHasSearched(true);
       setStatus("Searching encrypted data...");
 
       const indexes = await invoke("search_keyword", {
@@ -22,9 +29,16 @@ export default function Search({ user }) {
       });
 
       setResults(indexes);
-      setStatus(`Found ${indexes.length} result(s).`);
+
+      if (indexes.length === 0) {
+        setStatus("No matching ciphertext found.");
+      } else {
+        setStatus(`Found ${indexes.length} result(s).`);
+      }
     } catch (error) {
       console.error(error);
+      setResults([]);
+      setDownloadedMessages([]);
       setStatus(`Search failed: ${error}`);
     }
   };
@@ -48,7 +62,7 @@ export default function Search({ user }) {
 
   return (
     <div className="section-card">
-      <h2>Search Encrypted Messages</h2>
+      <h2>Authenticated Search over Encrypted Messages</h2>
 
       <input
         type="text"
@@ -63,8 +77,11 @@ export default function Search({ user }) {
 
       <div className="results-block">
         <h3>Search Results</h3>
-        {results.length === 0 ? (
-          <p>No results yet.</p>
+
+        {!hasSearched ? (
+          <p>No search performed yet.</p>
+        ) : results.length === 0 ? (
+          <p>No matching ciphertext found.</p>
         ) : (
           <ul>
             {results.map((index) => (
@@ -81,11 +98,12 @@ export default function Search({ user }) {
 
       <div className="results-block">
         <h3>Downloaded Messages</h3>
+
         {downloadedMessages.length === 0 ? (
           <p>No downloaded messages yet.</p>
         ) : (
           downloadedMessages.map((item, i) => (
-            <div key={i} className="message-box">
+            <div key={`${item.index}-${i}`} className="message-box">
               <strong>From result #{item.index}</strong>
               <p>{item.content}</p>
             </div>

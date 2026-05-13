@@ -21,22 +21,27 @@ fn setup_all(k: usize) {
 }
 
 #[tauri::command]
-fn register(id: String) {
-    user::register_user(&id);
+fn register(id: String) -> Result<String, String> {
+    user::register_user(&id)
 }
 
 #[tauri::command]
-fn upload_file(sender: String, receiver: String, msg: String, keyword: String) {
-    upload::upload(&sender, &receiver, &msg, &keyword);
+fn upload_file(
+    sender: String,
+    receiver: String,
+    msg: String,
+    keyword: String,
+) -> Result<(), String> {
+    upload::upload(&sender, &receiver, &msg, &keyword)
 }
 
 #[tauri::command]
-fn search_keyword(user: String, keyword: String) -> Vec<usize> {
+fn search_keyword(user: String, keyword: String) -> Result<Vec<usize>, String> {
     search::search(&user, &keyword)
 }
 
 #[tauri::command]
-fn download_file(user: String, index: usize) -> String {
+fn download_file(user: String, index: usize) -> Result<String, String> {
     download::download(&user, index)
 }
 

@@ -4,6 +4,7 @@ use mcore::rand::RAND;
 use std::fmt;
 use rand::RngCore;
 
+#[derive(Clone)]
 /// Polynomial operations.
 pub struct Polynomial {
     degree: usize,

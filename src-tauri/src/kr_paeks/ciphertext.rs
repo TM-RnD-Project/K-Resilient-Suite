@@ -7,6 +7,7 @@ use serde::Serialize;
 use serde::Deserialize;
 
 // #[derive(Serialize, Deserialize)]
+#[derive(Clone)]
 pub struct Ciphertext {
     pub c1: ecp::ECP,
     pub c2: ecp::ECP,

@@ -4,6 +4,7 @@ use mcore::ed25519::ecp;
 use mcore::ed25519::big;
 use std::fmt;
 
+#[derive(Clone)]
 pub struct PublicKey {
     pub dt: Vec<ecp::ECP>,
 }
